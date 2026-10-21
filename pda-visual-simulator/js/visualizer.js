@@ -2,8 +2,8 @@
  * visualizer.js
  * 
  * Rendering and DOM manipulation for the PDA Visual Simulator.
- * Handles SVG state diagrams, input tape, vertical stack, trace table,
- * palindrome mirror comparison, and step information panels.
+ * Handles dynamic SVG state diagrams, input tape, vertical stack,
+ * trace table, palindrome mirror comparison, and step information panels.
  */
 
 class Visualizer {
@@ -13,27 +13,34 @@ class Visualizer {
 
   /**
    * Initializes SVG state diagrams for both Question 1 and Question 2.
+   * @param {Object} [matchingPDA]
+   * @param {Object} [palindromePDA]
    */
-  initDiagrams() {
-    this.renderMatchingDiagram('diagram-matching');
-    this.renderPalindromeDiagram('diagram-palindrome');
+  initDiagrams(matchingPDA, palindromePDA) {
+    this.renderMatchingDiagram('diagram-matching', matchingPDA);
+    this.renderPalindromeDiagram('diagram-palindrome', palindromePDA);
   }
 
   /**
-   * Renders the 5-state SVG diagram for Question 1: Matching PDA.
-   * States: q0, q1, q2, q3, qf
+   * Renders the SVG diagram for Question 1 (Matching / Configurable PDA).
    * @param {string} containerId 
+   * @param {Object} [pdaModel]
    */
-  renderMatchingDiagram(containerId) {
+  renderMatchingDiagram(containerId, pdaModel) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    // Dimensions
+    // If a non-default 3-state preset is active (e.g. 0^n 1^n, a^n b^2n, w c w^R)
+    if (pdaModel && !pdaModel.isDefault && pdaModel.states && pdaModel.states.length === 3) {
+      this._render3StateMatchingDiagram(container, pdaModel);
+      return;
+    }
+
+    // Default 5-State Diagram for L = { 0^i 1^j 2^j 3^i }
     const width = 860;
     const height = 260;
     const yCenter = 150;
 
-    // State coordinates
     const coords = {
       q0: { x: 95, y: yCenter },
       q1: { x: 270, y: yCenter },
@@ -45,15 +52,12 @@ class Visualizer {
     const svg = `
       <svg viewBox="0 0 ${width} ${height}" class="pda-svg" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <!-- Arrow marker default -->
           <marker id="arrow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
             <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#475569"/>
           </marker>
-          <!-- Arrow marker active/highlighted -->
           <marker id="arrow-active" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
             <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#2563eb"/>
           </marker>
-          <!-- Filter for state glow -->
           <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
             <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#2563eb" flood-opacity="0.35"/>
           </filter>
@@ -64,8 +68,6 @@ class Visualizer {
           <line x1="25" y1="${yCenter}" x2="65" y2="${yCenter}" stroke="#475569" stroke-width="2.5" marker-end="url(#arrow)"/>
           <text x="35" y="${yCenter - 10}" class="svg-label start-label">Start</text>
         </g>
-
-        <!-- ================= TRANSITIONS ================= -->
 
         <!-- q0 Self Loop: 0, Z -> XZ and 0, X -> XX -->
         <g id="trans-q0-0-Z" class="svg-transition">
@@ -125,36 +127,30 @@ class Visualizer {
         </g>
 
         <!-- ================= STATES ================= -->
-
-        <!-- State q0 -->
         <g id="state-q0" class="svg-state" transform="translate(${coords.q0.x}, ${coords.q0.y})">
           <circle cx="0" cy="0" r="28" class="state-circle"/>
           <text cx="0" cy="0" dy="5" class="state-text" text-anchor="middle">q₀</text>
           <text cx="0" cy="42" class="state-sublabel" text-anchor="middle">Read 0s</text>
         </g>
 
-        <!-- State q1 -->
         <g id="state-q1" class="svg-state" transform="translate(${coords.q1.x}, ${coords.q1.y})">
           <circle cx="0" cy="0" r="28" class="state-circle"/>
           <text cx="0" cy="0" dy="5" class="state-text" text-anchor="middle">q₁</text>
           <text cx="0" cy="42" class="state-sublabel" text-anchor="middle">Read 1s</text>
         </g>
 
-        <!-- State q2 -->
         <g id="state-q2" class="svg-state" transform="translate(${coords.q2.x}, ${coords.q2.y})">
           <circle cx="0" cy="0" r="28" class="state-circle"/>
           <text cx="0" cy="0" dy="5" class="state-text" text-anchor="middle">q₂</text>
           <text cx="0" cy="42" class="state-sublabel" text-anchor="middle">Pop Ys (2s)</text>
         </g>
 
-        <!-- State q3 -->
         <g id="state-q3" class="svg-state" transform="translate(${coords.q3.x}, ${coords.q3.y})">
           <circle cx="0" cy="0" r="28" class="state-circle"/>
           <text cx="0" cy="0" dy="5" class="state-text" text-anchor="middle">q₃</text>
           <text cx="0" cy="42" class="state-sublabel" text-anchor="middle">Pop Xs (3s)</text>
         </g>
 
-        <!-- State qf (Final: double circle) -->
         <g id="state-qf" class="svg-state final-state" transform="translate(${coords.qf.x}, ${coords.qf.y})">
           <circle cx="0" cy="0" r="30" class="state-circle outer-circle"/>
           <circle cx="0" cy="0" r="24" class="state-circle inner-circle"/>
@@ -168,11 +164,99 @@ class Visualizer {
   }
 
   /**
-   * Renders the 3-state SVG diagram for Question 2: Palindrome CFG-to-PDA.
-   * States: q0, q1, qf
-   * @param {string} containerId 
+   * Helper to render a 3-state diagram for alternate PDA presets (e.g. 0^n 1^n, a^n b^2n).
    */
-  renderPalindromeDiagram(containerId) {
+  _render3StateMatchingDiagram(container, pdaModel) {
+    const width = 800;
+    const height = 260;
+    const yCenter = 140;
+
+    const coords = {
+      q0: { x: 140, y: yCenter },
+      q1: { x: 400, y: yCenter },
+      qf: { x: 660, y: yCenter }
+    };
+
+    const trans = pdaModel.parsedTransitions || [];
+    const q0Loops = trans.filter(t => t.state === 'q0' && t.nextState === 'q0').map(t => `${t.input}, ${t.stackTop} → ${t.replacement || 'ε'}`);
+    const q0Toq1 = trans.filter(t => t.state === 'q0' && t.nextState === 'q1').map(t => `${t.input}, ${t.stackTop} → ${t.replacement || 'ε'}`)[0] || '1, X → ε';
+    const q1Loops = trans.filter(t => t.state === 'q1' && t.nextState === 'q1').map(t => `${t.input}, ${t.stackTop} → ${t.replacement || 'ε'}`);
+    const q1Toqf = trans.filter(t => t.state === 'q1' && t.nextState === 'qf').map(t => `${t.input}, ${t.stackTop} → ${t.replacement || 'ε'}`)[0] || 'ε, Z → Z';
+
+    const svg = `
+      <svg viewBox="0 0 ${width} ${height}" class="pda-svg" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#475569"/>
+          </marker>
+          <marker id="arrow-active" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#2563eb"/>
+          </marker>
+        </defs>
+
+        <!-- Start initial arrow -->
+        <g class="transition-group">
+          <line x1="50" y1="${yCenter}" x2="108" y2="${yCenter}" stroke="#475569" stroke-width="2.5" marker-end="url(#arrow)"/>
+          <text x="60" y="${yCenter - 10}" class="svg-label start-label">Start</text>
+        </g>
+
+        <!-- q0 Self Loop -->
+        <g id="trans-q0-loop" class="svg-transition">
+          <path d="M 125,113 C 90,35 190,35 155,113" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+          <rect x="95" y="15" width="90" height="${Math.max(24, q0Loops.length * 16)}" rx="4" class="label-bg"/>
+          ${q0Loops.map((lbl, idx) => `<text x="140" y="${28 + idx * 14}" class="svg-label trans-label" text-anchor="middle">${lbl}</text>`).join('')}
+        </g>
+
+        <!-- q0 -> q1 -->
+        <g id="trans-q0-q1" class="svg-transition">
+          <line x1="172" y1="${yCenter}" x2="368" y2="${yCenter}" stroke="#475569" stroke-width="2.2" marker-end="url(#arrow)"/>
+          <rect x="225" y="${yCenter - 25}" width="90" height="20" rx="4" class="label-bg"/>
+          <text x="270" y="${yCenter - 11}" class="svg-label trans-label" text-anchor="middle">${q0Toq1}</text>
+        </g>
+
+        <!-- q1 Self Loop -->
+        <g id="trans-q1-loop" class="svg-transition">
+          <path d="M 385,113 C 350,35 450,35 415,113" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+          <rect x="355" y="15" width="90" height="${Math.max(24, q1Loops.length * 16)}" rx="4" class="label-bg"/>
+          ${q1Loops.map((lbl, idx) => `<text x="400" y="${28 + idx * 14}" class="svg-label trans-label" text-anchor="middle">${lbl}</text>`).join('')}
+        </g>
+
+        <!-- q1 -> qf -->
+        <g id="trans-q1-qf" class="svg-transition">
+          <line x1="432" y1="${yCenter}" x2="628" y2="${yCenter}" stroke="#475569" stroke-width="2.2" marker-end="url(#arrow)"/>
+          <rect x="485" y="${yCenter - 25}" width="90" height="20" rx="4" class="label-bg"/>
+          <text x="530" y="${yCenter - 11}" class="svg-label trans-label" text-anchor="middle">${q1Toqf}</text>
+        </g>
+
+        <!-- States -->
+        <g id="state-q0" class="svg-state" transform="translate(${coords.q0.x}, ${coords.q0.y})">
+          <circle cx="0" cy="0" r="30" class="state-circle"/>
+          <text cx="0" cy="0" dy="5" class="state-text" text-anchor="middle">q₀</text>
+        </g>
+
+        <g id="state-q1" class="svg-state" transform="translate(${coords.q1.x}, ${coords.q1.y})">
+          <circle cx="0" cy="0" r="30" class="state-circle"/>
+          <text cx="0" cy="0" dy="5" class="state-text" text-anchor="middle">q₁</text>
+        </g>
+
+        <g id="state-qf" class="svg-state final-state" transform="translate(${coords.qf.x}, ${coords.qf.y})">
+          <circle cx="0" cy="0" r="30" class="state-circle outer-circle"/>
+          <circle cx="0" cy="0" r="24" class="state-circle inner-circle"/>
+          <text cx="0" cy="0" dy="5" class="state-text" text-anchor="middle">q_f</text>
+        </g>
+      </svg>
+    `;
+
+    container.innerHTML = svg;
+  }
+
+  /**
+   * Renders the 3-state SVG diagram for Question 2: Palindrome / General CFG-to-PDA.
+   * Dynamically displays user grammar productions on the top loop and terminals on the bottom loop.
+   * @param {string} containerId 
+   * @param {Object} [pdaModel]
+   */
+  renderPalindromeDiagram(containerId, pdaModel) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
@@ -185,6 +269,17 @@ class Visualizer {
       q1: { x: 400, y: yCenter },
       qf: { x: 680, y: yCenter }
     };
+
+    const startSym = (pdaModel && pdaModel.startSymbol) ? pdaModel.startSymbol : 'S';
+    const prods = (pdaModel && pdaModel.productions) ? pdaModel.productions : [
+      { fullStr: 'S → aSa' },
+      { fullStr: 'S → bSb' },
+      { fullStr: 'S → ε' }
+    ];
+    const terms = (pdaModel && pdaModel.terminals) ? pdaModel.terminals : ['a', 'b'];
+
+    const topBoxHeight = Math.min(80, Math.max(34, prods.length * 16 + 8));
+    const botBoxHeight = Math.min(55, Math.max(26, terms.length * 16 + 6));
 
     const svg = `
       <svg viewBox="0 0 ${width} ${height}" class="pda-svg" xmlns="http://www.w3.org/2000/svg">
@@ -203,37 +298,35 @@ class Visualizer {
           <text x="50" y="${yCenter - 10}" class="svg-label start-label">Start</text>
         </g>
 
-        <!-- ================= TRANSITIONS ================= -->
-
         <!-- q0 -> q1: ε, Z -> SZ -->
         <g id="trans-q0-q1-init" class="svg-transition">
           <line x1="152" y1="${yCenter}" x2="368" y2="${yCenter}" stroke="#475569" stroke-width="2.2" marker-end="url(#arrow-pal)"/>
           <rect x="215" y="${yCenter - 25}" width="88" height="20" rx="4" class="label-bg"/>
-          <text x="259" y="${yCenter - 11}" class="svg-label trans-label" text-anchor="middle">ε, Z → SZ</text>
+          <text x="259" y="${yCenter - 11}" class="svg-label trans-label" text-anchor="middle">ε, Z → ${startSym}Z</text>
         </g>
 
         <!-- q1 Top Self-Loops: Grammar Expansions -->
-        <!-- S -> aSa -->
-        <g id="trans-q1-aSa" class="svg-transition">
+        <g id="trans-q1-expansions" class="svg-transition">
           <path d="M 382,121 C 330,30 470,30 418,121" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrow-pal)"/>
-          <rect x="345" y="10" width="110" height="54" rx="4" class="label-bg"/>
-          <text x="400" y="26" class="svg-label trans-label" text-anchor="middle">ε, S → aSa</text>
-          <text x="400" y="42" class="svg-label trans-label" text-anchor="middle">ε, S → bSb</text>
-          <text x="400" y="58" class="svg-label trans-label" text-anchor="middle">ε, S → ε</text>
+          <rect x="330" y="8" width="140" height="${topBoxHeight}" rx="4" class="label-bg"/>
+          ${prods.slice(0, 4).map((p, idx) => `<text x="400" y="${22 + idx * 15}" class="svg-label trans-label" text-anchor="middle">ε, ${p.fullStr}</text>`).join('')}
+          ${prods.length > 4 ? `<text x="400" y="${22 + 4 * 15}" class="svg-label trans-label" text-anchor="middle">... +${prods.length - 4} rules</text>` : ''}
         </g>
 
-        <!-- Invisible alias anchors for individual transition highlighting -->
+        <!-- Aliases for compatibility with transition IDs -->
+        <g id="trans-q1-aSa" class="svg-transition-alias"></g>
         <g id="trans-q1-bSb" class="svg-transition-alias"></g>
         <g id="trans-q1-eps" class="svg-transition-alias"></g>
 
         <!-- q1 Bottom Self-Loops: Terminal Matches -->
-        <g id="trans-q1-match-a" class="svg-transition">
+        <g id="trans-q1-matches" class="svg-transition">
           <path d="M 418,179 C 470,270 330,270 382,179" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrow-pal)"/>
-          <rect x="355" y="235" width="90" height="38" rx="4" class="label-bg"/>
-          <text x="400" y="250" class="svg-label trans-label" text-anchor="middle">a, a → ε</text>
-          <text x="400" y="266" class="svg-label trans-label" text-anchor="middle">b, b → ε</text>
+          <rect x="355" y="235" width="90" height="${botBoxHeight}" rx="4" class="label-bg"/>
+          ${terms.slice(0, 3).map((t, idx) => `<text x="400" y="${250 + idx * 15}" class="svg-label trans-label" text-anchor="middle">${t}, ${t} → ε</text>`).join('')}
+          ${terms.length > 3 ? `<text x="400" y="${250 + 3 * 15}" class="svg-label trans-label" text-anchor="middle">...</text>` : ''}
         </g>
 
+        <g id="trans-q1-match-a" class="svg-transition-alias"></g>
         <g id="trans-q1-match-b" class="svg-transition-alias"></g>
 
         <!-- q1 -> qf: ε, Z -> Z -->
@@ -243,23 +336,19 @@ class Visualizer {
           <text x="540" y="${yCenter - 11}" class="svg-label trans-label" text-anchor="middle">ε, Z → Z</text>
         </g>
 
-        <!-- ================= STATES ================= -->
-
-        <!-- State q0 -->
+        <!-- States -->
         <g id="state-pal-q0" class="svg-state" transform="translate(${coords.q0.x}, ${coords.q0.y})">
           <circle cx="0" cy="0" r="30" class="state-circle"/>
           <text cx="0" cy="0" dy="5" class="state-text" text-anchor="middle">q₀</text>
-          <text cx="0" cy="45" class="state-sublabel" text-anchor="middle">Init (Push S)</text>
+          <text cx="0" cy="45" class="state-sublabel" text-anchor="middle">Init (Push ${startSym})</text>
         </g>
 
-        <!-- State q1 -->
         <g id="state-pal-q1" class="svg-state" transform="translate(${coords.q1.x}, ${coords.q1.y})">
           <circle cx="0" cy="0" r="32" class="state-circle"/>
           <text cx="0" cy="0" dy="5" class="state-text" text-anchor="middle">q₁</text>
           <text cx="0" cy="5" class="state-sublabel" text-anchor="middle" opacity="0"></text>
         </g>
 
-        <!-- State qf -->
         <g id="state-pal-qf" class="svg-state final-state" transform="translate(${coords.qf.x}, ${coords.qf.y})">
           <circle cx="0" cy="0" r="32" class="state-circle outer-circle"/>
           <circle cx="0" cy="0" r="26" class="state-circle inner-circle"/>
@@ -275,21 +364,19 @@ class Visualizer {
   /**
    * Highlights the active state in the given diagram container.
    * @param {string} containerId 
-   * @param {string} stateId e.g. 'q0', 'q1', 'q2', 'q3', 'qf'
+   * @param {string} stateId 
    */
   highlightState(containerId, stateId) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    // Reset all states
     const states = container.querySelectorAll('.svg-state');
     states.forEach(s => s.classList.remove('active-state', 'pulse'));
 
     if (!stateId) return;
 
-    // Target state ID in DOM
     const prefix = containerId === 'diagram-palindrome' ? 'state-pal-' : 'state-';
-    const targetState = container.querySelector(`#${prefix}${stateId}`);
+    const targetState = container.querySelector(`#${prefix}${stateId}`) || container.querySelector(`#state-${stateId}`);
     if (targetState) {
       targetState.classList.add('active-state', 'pulse');
     }
@@ -304,7 +391,6 @@ class Visualizer {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    // Reset all transitions
     const transitions = container.querySelectorAll('.svg-transition');
     transitions.forEach(t => {
       t.classList.remove('active-transition');
@@ -323,19 +409,26 @@ class Visualizer {
 
     if (!transitionId) return;
 
-    // Map aliases for palindrome loops
     let targetId = transitionId;
-    if (containerId === 'diagram-palindrome') {
-      if (transitionId === 'trans-q1-bSb' || transitionId === 'trans-q1-eps') {
-        targetId = 'trans-q1-aSa'; // Shares the expansion loop visual
-      } else if (transitionId === 'trans-q1-match-b') {
-        targetId = 'trans-q1-match-a'; // Shares the matching loop visual
-      }
-    }
 
-    // Question 1 alias mapping
-    if (containerId === 'diagram-matching' && transitionId === 'trans-q0-0-X') {
-      targetId = 'trans-q0-0-Z'; // Shares the q0 self-loop visual
+    if (containerId === 'diagram-palindrome') {
+      if (transitionId.startsWith('trans-q1-expand-') || transitionId === 'trans-q1-aSa' || transitionId === 'trans-q1-bSb' || transitionId === 'trans-q1-eps') {
+        targetId = 'trans-q1-expansions';
+      } else if (transitionId.startsWith('trans-q1-match-') || transitionId === 'trans-q1-match-a' || transitionId === 'trans-q1-match-b') {
+        targetId = 'trans-q1-matches';
+      }
+    } else {
+      if (transitionId === 'trans-q0-0-X') {
+        targetId = 'trans-q0-0-Z';
+      } else if (transitionId.includes('q0') && transitionId.includes('q0')) {
+        targetId = 'trans-q0-loop';
+      } else if (transitionId.includes('q1') && transitionId.includes('q1')) {
+        targetId = 'trans-q1-loop';
+      } else if (transitionId.includes('q0') && transitionId.includes('q1')) {
+        targetId = 'trans-q0-q1';
+      } else if (transitionId.includes('q1') && transitionId.includes('qf')) {
+        targetId = 'trans-q1-qf';
+      }
     }
 
     const target = container.querySelector(`#${targetId}`);
@@ -400,7 +493,6 @@ class Visualizer {
       `;
     }
 
-    // If input is fully consumed (activeIndex >= length), show end marker
     if (activeIndex >= fullInput.length) {
       html += `
         <div class="tape-cell end-marker active">
@@ -414,7 +506,6 @@ class Visualizer {
     html += '</div>';
     container.innerHTML = html;
 
-    // Smooth horizontal scroll to keep the active character centered
     const tapeWrap = container.querySelector('.tape-wrapper');
     const activeCell = container.querySelector('.tape-cell.active');
     if (tapeWrap && activeCell) {
@@ -425,10 +516,9 @@ class Visualizer {
 
   /**
    * Renders the vertical visual stack.
-   * Displays elements from top to bottom visually (top element on top of vertical box).
    * @param {string} containerId 
-   * @param {Array<string>} stackArray index 0 is bottom (Z), last element is top.
-   * @param {string} lastOperation 'PUSH', 'POP', 'ACCEPT', etc.
+   * @param {Array<string>} stackArray 
+   * @param {string} lastOperation 
    * @param {string} symbolOperated 
    */
   renderVisualStack(containerId, stackArray, lastOperation, symbolOperated) {
@@ -445,7 +535,6 @@ class Visualizer {
       return;
     }
 
-    // Top indicator header
     let html = `
       <div class="stack-box">
         <div class="stack-top-header">
@@ -455,7 +544,6 @@ class Visualizer {
         <div class="stack-elements-container">
     `;
 
-    // Render from top (last index) down to bottom (index 0)
     for (let i = stackArray.length - 1; i >= 0; i--) {
       const sym = stackArray[i];
       const isTop = i === stackArray.length - 1;
@@ -469,19 +557,22 @@ class Visualizer {
         description = 'Bottom Marker';
       } else if (sym === 'X') {
         colorClass = 'block-x';
-        description = 'Counts 0s';
+        description = 'Stack X';
       } else if (sym === 'Y') {
         colorClass = 'block-y';
-        description = 'Counts 1s';
+        description = 'Stack Y';
       } else if (sym === 'S') {
         colorClass = 'block-s';
-        description = 'CFG Variable';
+        description = 'Variable S';
       } else if (sym === 'a') {
         colorClass = 'block-a';
         description = 'Terminal a';
       } else if (sym === 'b') {
         colorClass = 'block-b';
         description = 'Terminal b';
+      } else {
+        colorClass = 'block-default';
+        description = `Symbol ${sym}`;
       }
 
       const topClass = isTop ? 'is-top-element anim-top-focus' : '';
@@ -541,7 +632,7 @@ class Visualizer {
       <div class="step-card">
         <div class="step-card-header">
           <div class="step-badge-group">
-            <span class="step-number-badge">Step ${step.stepNumber} of ${totalSteps - 1}</span>
+            <span class="step-number-badge">Step ${step.stepNumber} of ${Math.max(0, totalSteps - 1)}</span>
             <span class="state-badge">State: <strong>${step.state}</strong></span>
             ${step.nextState ? `<span class="next-state-badge">→ <strong>${step.nextState}</strong></span>` : ''}
             <span class="op-badge ${opBadgeClass}">${step.operation}</span>
@@ -576,7 +667,6 @@ class Visualizer {
 
   /**
    * Renders the execution trace table.
-   * Columns: Step | State | Input Consumed | Stack (Bottom on Left) | Action
    * @param {string} containerId 
    * @param {Array<Object>} steps 
    * @param {number} activeStepIndex 
@@ -640,7 +730,6 @@ class Visualizer {
 
     container.innerHTML = html;
 
-    // Smoothly scroll container internally without shifting window viewport
     const tableContainer = container.querySelector('.trace-table-container');
     const activeRow = container.querySelector('.active-row');
     if (tableContainer && activeRow) {
@@ -651,7 +740,6 @@ class Visualizer {
 
   /**
    * Renders the Palindrome Mirror Comparison widget for Question 2.
-   * Input vs Reverse with color-coded matches/mismatches.
    * @param {string} containerId 
    * @param {Object} analysis 
    */
@@ -706,7 +794,7 @@ class Visualizer {
             <div class="char-cells">
     `;
 
-    const reversed = analysis.reversed;
+    const reversed = analysis.reversed || input.split('').reverse().join('');
     for (let i = 0; i < len; i++) {
       const ch = reversed[i];
       const j = len - 1 - i;
@@ -731,14 +819,14 @@ class Visualizer {
       html += `
         <div class="mirror-note note-success">
           <span class="icon">✓</span>
-          <span><strong>Even-length Palindrome:</strong> String mirrors perfectly from ends to center with an even length (${len} = 2 × ${half}). Successfully recognized by CFG S → aSa | bSb | ε.</span>
+          <span><strong>Even-length Palindrome:</strong> Mirrors perfectly with even length (${len}). Generated by CFG S → aSa | bSb | ε.</span>
         </div>
       `;
     } else if (analysis.isPalindrome && analysis.isOddLength) {
       html += `
         <div class="mirror-note note-warning">
           <span class="icon">⚠</span>
-          <span><strong>Odd-length Palindrome:</strong> While '${input}' is symmetrical around center character '${input[half]}', <strong>it cannot be generated by this CFG</strong>. The grammar S → aSa | bSb | ε generates only strings of length 2k.</span>
+          <span><strong>Odd-length Palindrome:</strong> Symmetrical around center '${input[half]}', but only even-length palindromes are generated by S → aSa | bSb | ε.</span>
         </div>
       `;
     } else {
@@ -769,11 +857,11 @@ class Visualizer {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    if (!simulationResult || !simulationResult.accepted || !simulationResult.analysis) {
+    if (!simulationResult || !simulationResult.accepted || !simulationResult.analysis || !simulationResult.analysis.derivation) {
       container.innerHTML = `
         <div class="derivation-box empty-derivation">
           <div class="derivation-title">Grammar Derivation</div>
-          <div class="no-derivation-msg">No valid leftmost derivation exists for this input under S → aSa | bSb | ε.</div>
+          <div class="no-derivation-msg">No valid leftmost derivation exists for this input under the current grammar.</div>
         </div>
       `;
       return;

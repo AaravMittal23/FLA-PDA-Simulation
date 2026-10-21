@@ -39,10 +39,52 @@
       <!-- Compact Problem Strip -->
       <div class="problem-summary-strip">
         <div class="strip-left">
-          <span class="math-definition">L = { 0ⁱ1ʲ2ʲ3ⁱ | i, j ≥ 1 }</span>
-          <span class="strip-rule">Equal 0s &amp; 3s, equal 1s &amp; 2s &bull; Strict order: 0-1-2-3 &bull; Stack Alphabet: {Z, X, Y}</span>
+          <span class="math-definition" id="math-eq-matching">L = { 0ⁱ1ʲ2ʲ3ⁱ | i, j ≥ 1 }</span>
+          <span class="strip-rule" id="strip-desc-matching">Equal 0s &amp; 3s, equal 1s &amp; 2s &bull; Strict order: 0-1-2-3 &bull; Stack Alphabet: {Z, X, Y}</span>
+        </div>
+        <div class="strip-right">
+          <span class="config-active-badge" id="config-badge-matching">Default: 0ⁱ1ʲ2ʲ3ⁱ</span>
         </div>
       </div>
+
+      <!-- Collapsible Configuration Drawer -->
+      <details class="config-drawer" id="config-drawer-matching">
+        <summary class="config-summary">
+          <span class="config-summary-title">⚙️ Customize Language &amp; PDA Rules</span>
+          <span class="config-summary-sub">Presets or Custom Transition Rules (Click to expand)</span>
+        </summary>
+        <div class="config-body">
+          <div class="config-grid">
+            <div class="config-field">
+              <label for="preset-select-matching" class="config-label">Language Preset / Custom Mode:</label>
+              <select id="preset-select-matching" class="config-select">
+                <option value="default" selected>Default: L = { 0ⁱ1ʲ2ʲ3ⁱ | i,j ≥ 1 } (College Assignment)</option>
+                <option value="equal01">Preset: L = { 0ⁿ1ⁿ | n ≥ 1 }</option>
+                <option value="doubleB">Preset: L = { aⁿb²ⁿ | n ≥ 1 }</option>
+                <option value="markedPal">Preset: L = { w c wᴿ | w ∈ {0,1}* } (Marked Center)</option>
+                <option value="custom">✏️ Custom PDA Rules (Enter below)</option>
+              </select>
+            </div>
+            <div class="config-field">
+              <label for="custom-eq-matching" class="config-label">Language Math Notation / Title:</label>
+              <input type="text" id="custom-eq-matching" class="config-input" value="L = { 0ⁱ1ʲ2ʲ3ⁱ | i, j ≥ 1 }" placeholder="e.g. L = { aⁿbⁿ | n ≥ 1 }">
+            </div>
+          </div>
+          <div class="config-field" style="margin-top: 10px;">
+            <label for="custom-desc-matching" class="config-label">Description / Meaning:</label>
+            <input type="text" id="custom-desc-matching" class="config-input" value="Equal 0s &amp; 3s, equal 1s &amp; 2s &bull; Strict order: 0-1-2-3 &bull; Stack Alphabet: {Z, X, Y}" placeholder="Brief summary of language">
+          </div>
+          <div class="config-field" id="custom-trans-box-matching" style="display: none; margin-top: 10px;">
+            <label for="custom-transitions-matching" class="config-label">Custom Transitions <code>(state, input, stackTop) -&gt; (nextState, replacement)</code>:</label>
+            <textarea id="custom-transitions-matching" class="config-textarea" rows="6" spellcheck="false" placeholder="(q0, 0, Z) -&gt; (q0, XZ)&#10;(q0, 0, X) -&gt; (q0, XX)&#10;(q0, 1, X) -&gt; (q1, YX)&#10;(q1, 1, Y) -&gt; (q1, YY)&#10;(q1, 2, Y) -&gt; (q2, ε)&#10;(q2, 2, Y) -&gt; (q2, ε)&#10;(q2, 3, X) -&gt; (q3, ε)&#10;(q3, 3, X) -&gt; (q3, ε)&#10;(q3, ε, Z) -&gt; (qf, Z)"></textarea>
+            <span class="config-hint">Format: <code>(q0, 0, Z) -&gt; (q0, XZ)</code> or <code>q0, 0, Z -&gt; q0, XZ</code>. Use <code>ε</code> or <code>e</code> for empty.</span>
+          </div>
+          <div class="config-actions">
+            <button id="btn-apply-matching" class="btn btn-primary btn-sm">✓ Apply Rules</button>
+            <button id="btn-reset-config-matching" class="btn btn-sm">↺ Reset to Default Problem</button>
+          </div>
+        </div>
+      </details>
 
       <!-- Controls & Input Bar -->
       <div class="card control-card">
@@ -60,20 +102,24 @@
         <div class="presets-section">
           <div class="preset-group-row">
             <span class="preset-title accepted">Accepted:</span>
-            <button class="preset-btn preset-acc" data-tab="matching" data-value="0123">0123</button>
-            <button class="preset-btn preset-acc" data-tab="matching" data-value="00112233">00112233</button>
-            <button class="preset-btn preset-acc" data-tab="matching" data-value="011223">011223</button>
-            <button class="preset-btn preset-acc" data-tab="matching" data-value="0001122333">0001122333</button>
-            <button class="preset-btn preset-acc" data-tab="matching" data-value="001233">001233</button>
+            <div id="presets-acc-matching" class="preset-btn-list">
+              <button class="preset-btn preset-acc" data-tab="matching" data-value="0123">0123</button>
+              <button class="preset-btn preset-acc" data-tab="matching" data-value="00112233">00112233</button>
+              <button class="preset-btn preset-acc" data-tab="matching" data-value="011223">011223</button>
+              <button class="preset-btn preset-acc" data-tab="matching" data-value="0001122333">0001122333</button>
+              <button class="preset-btn preset-acc" data-tab="matching" data-value="001233">001233</button>
+            </div>
           </div>
           <div class="preset-group-row">
             <span class="preset-title rejected">Rejected:</span>
-            <button class="preset-btn preset-rej" data-tab="matching" data-value="0011223">0011223</button>
-            <button class="preset-btn preset-rej" data-tab="matching" data-value="00112333">00112333</button>
-            <button class="preset-btn preset-rej" data-tab="matching" data-value="01233">01233</button>
-            <button class="preset-btn preset-rej" data-tab="matching" data-value="00113223">00113223</button>
-            <button class="preset-btn preset-rej" data-tab="matching" data-value="0112233">0112233</button>
-            <button class="preset-btn preset-rej" data-tab="matching" data-value="">ε (Empty)</button>
+            <div id="presets-rej-matching" class="preset-btn-list">
+              <button class="preset-btn preset-rej" data-tab="matching" data-value="0011223">0011223</button>
+              <button class="preset-btn preset-rej" data-tab="matching" data-value="00112333">00112333</button>
+              <button class="preset-btn preset-rej" data-tab="matching" data-value="01233">01233</button>
+              <button class="preset-btn preset-rej" data-tab="matching" data-value="00113223">00113223</button>
+              <button class="preset-btn preset-rej" data-tab="matching" data-value="0112233">0112233</button>
+              <button class="preset-btn preset-rej" data-tab="matching" data-value="">ε (Empty)</button>
+            </div>
           </div>
         </div>
 
@@ -176,10 +222,47 @@
       <!-- Compact Problem Strip -->
       <div class="problem-summary-strip">
         <div class="strip-left">
-          <span class="math-definition grammar-badge">S → aSa | bSb | ε</span>
-          <span class="strip-rule">Generates even-length palindromes (length 2k) over {a, b} &bull; Stack Alphabet: {Z, S, a, b}</span>
+          <span class="math-definition grammar-badge" id="grammar-badge-palindrome">S → aSa | bSb | ε</span>
+          <span class="strip-rule" id="strip-desc-palindrome">Generates even-length palindromes (length 2k) over {a, b} &bull; Stack Alphabet: {Z, S, a, b}</span>
+        </div>
+        <div class="strip-right">
+          <span class="config-active-badge" id="config-badge-palindrome">Default: S → aSa | bSb | ε</span>
         </div>
       </div>
+
+      <!-- Collapsible Configuration Drawer -->
+      <details class="config-drawer" id="config-drawer-palindrome">
+        <summary class="config-summary">
+          <span class="config-summary-title">⚙️ Customize CFG Grammar</span>
+          <span class="config-summary-sub">Presets or Custom CFG Productions (Click to expand)</span>
+        </summary>
+        <div class="config-body">
+          <div class="config-grid">
+            <div class="config-field">
+              <label for="preset-select-palindrome" class="config-label">Grammar Preset / Custom Mode:</label>
+              <select id="preset-select-palindrome" class="config-select">
+                <option value="default" selected>Default: S → aSa | bSb | ε (Even-length Palindromes)</option>
+                <option value="allPal">Preset: S → aSa | bSb | a | b | ε (All Palindromes - Even &amp; Odd)</option>
+                <option value="anbn">Preset: S → aSb | ε (L = { aⁿbⁿ })</option>
+                <option value="centerC">Preset: S → 0S0 | 1S1 | c (Marked Center)</option>
+                <option value="custom">✏️ Custom CFG Productions</option>
+              </select>
+            </div>
+            <div class="config-field">
+              <label for="custom-grammar-input" class="config-label">CFG Production Rules (separated by | or newlines):</label>
+              <input type="text" id="custom-grammar-input" class="config-input" value="S -> aSa | bSb | ε" placeholder="e.g. S -> aSa | bSb | ε">
+            </div>
+          </div>
+          <div class="config-field" style="margin-top: 10px;">
+            <label for="custom-desc-palindrome" class="config-label">Grammar Description:</label>
+            <input type="text" id="custom-desc-palindrome" class="config-input" value="Generates even-length palindromes (length 2k) over {a, b}" placeholder="Description of generated language">
+          </div>
+          <div class="config-actions">
+            <button id="btn-apply-palindrome" class="btn btn-primary btn-sm">✓ Apply CFG Grammar</button>
+            <button id="btn-reset-config-palindrome" class="btn btn-sm">↺ Reset to Default CFG</button>
+          </div>
+        </div>
+      </details>
 
       <!-- Controls & Input Bar -->
       <div class="card control-card">
@@ -197,20 +280,24 @@
         <div class="presets-section">
           <div class="preset-group-row">
             <span class="preset-title accepted">Accepted:</span>
-            <button class="preset-btn preset-acc" data-tab="palindrome" data-value="">ε (Empty)</button>
-            <button class="preset-btn preset-acc" data-tab="palindrome" data-value="aa">aa</button>
-            <button class="preset-btn preset-acc" data-tab="palindrome" data-value="bb">bb</button>
-            <button class="preset-btn preset-acc" data-tab="palindrome" data-value="abba">abba</button>
-            <button class="preset-btn preset-acc" data-tab="palindrome" data-value="baab">baab</button>
-            <button class="preset-btn preset-acc" data-tab="palindrome" data-value="aabbaa">aabbaa</button>
+            <div id="presets-acc-palindrome" class="preset-btn-list">
+              <button class="preset-btn preset-acc" data-tab="palindrome" data-value="">ε (Empty)</button>
+              <button class="preset-btn preset-acc" data-tab="palindrome" data-value="aa">aa</button>
+              <button class="preset-btn preset-acc" data-tab="palindrome" data-value="bb">bb</button>
+              <button class="preset-btn preset-acc" data-tab="palindrome" data-value="abba">abba</button>
+              <button class="preset-btn preset-acc" data-tab="palindrome" data-value="baab">baab</button>
+              <button class="preset-btn preset-acc" data-tab="palindrome" data-value="aabbaa">aabbaa</button>
+            </div>
           </div>
           <div class="preset-group-row">
             <span class="preset-title rejected">Rejected:</span>
-            <button class="preset-btn preset-rej" data-tab="palindrome" data-value="aba">aba (odd-length)</button>
-            <button class="preset-btn preset-rej" data-tab="palindrome" data-value="abab">abab</button>
-            <button class="preset-btn preset-rej" data-tab="palindrome" data-value="aabb">aabb</button>
-            <button class="preset-btn preset-rej" data-tab="palindrome" data-value="abc">abc</button>
-            <button class="preset-btn preset-rej" data-tab="palindrome" data-value="a">a</button>
+            <div id="presets-rej-palindrome" class="preset-btn-list">
+              <button class="preset-btn preset-rej" data-tab="palindrome" data-value="aba">aba (odd-length)</button>
+              <button class="preset-btn preset-rej" data-tab="palindrome" data-value="abab">abab</button>
+              <button class="preset-btn preset-rej" data-tab="palindrome" data-value="aabb">aabb</button>
+              <button class="preset-btn preset-rej" data-tab="palindrome" data-value="abc">abc</button>
+              <button class="preset-btn preset-rej" data-tab="palindrome" data-value="a">a</button>
+            </div>
           </div>
         </div>
 

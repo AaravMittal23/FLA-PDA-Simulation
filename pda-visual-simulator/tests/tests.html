@@ -235,6 +235,23 @@
       </table>
     </div>
 
+    <!-- Suite 4: Custom Configuration & Presets -->
+    <div class="suite-section">
+      <h2 class="suite-title">Suite 4: Custom Configurations &amp; Presets</h2>
+      <table class="test-table">
+        <thead>
+          <tr>
+            <th style="width: 220px;">Test Description</th>
+            <th style="width: 100px;">Input</th>
+            <th style="width: 140px;">Expected</th>
+            <th style="width: 90px;">Status</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-config"></tbody>
+      </table>
+    </div>
+
   </div>
 
   <!-- Engines -->
@@ -410,6 +427,111 @@
         'Clarifies CFG only generates even palindromes',
         mentionsOddGrammar,
         resAba.reason
+      );
+
+      // ==========================================
+      // SUITE 4: Dynamic Customization & Presets
+      // ==========================================
+      document.getElementById('tbody-config').innerHTML = '';
+
+      // Test 4.1: Preset equal01 (0^n 1^n) in MatchingPDA
+      pda1.setPreset('equal01');
+      const resEqualAcc = pda1.simulate('0011');
+      const resEqualRej = pda1.simulate('001');
+      recordTest(
+        'tbody-config',
+        'Preset 0ⁿ1ⁿ acceptance ("0011")',
+        '0011',
+        'ACCEPTED',
+        resEqualAcc.accepted === true,
+        resEqualAcc.reason
+      );
+      recordTest(
+        'tbody-config',
+        'Preset 0ⁿ1ⁿ rejection ("001")',
+        '001',
+        'REJECTED',
+        resEqualRej.accepted === false,
+        resEqualRej.reason
+      );
+
+      // Test 4.2: Preset doubleB (a^n b^2n) in MatchingPDA
+      pda1.setPreset('doubleB');
+      const resDoubleAcc = pda1.simulate('aabbbb');
+      const resDoubleRej = pda1.simulate('abbb');
+      recordTest(
+        'tbody-config',
+        'Preset aⁿb²ⁿ acceptance ("aabbbb")',
+        'aabbbb',
+        'ACCEPTED',
+        resDoubleAcc.accepted === true,
+        resDoubleAcc.reason
+      );
+      recordTest(
+        'tbody-config',
+        'Preset aⁿb²ⁿ rejection ("abbb")',
+        'abbb',
+        'REJECTED',
+        resDoubleRej.accepted === false,
+        resDoubleRej.reason
+      );
+
+      // Test 4.3: Reset MatchingPDA back to default
+      pda1.resetToDefault();
+      const resResetQ1 = pda1.simulate('00112233');
+      recordTest(
+        'tbody-config',
+        'MatchingPDA reset to default ("00112233")',
+        '00112233',
+        'ACCEPTED',
+        resResetQ1.accepted === true && pda1.isDefault === true,
+        'Restored default 0ⁱ1ʲ2ʲ3ⁱ problem'
+      );
+
+      // Test 4.4: Custom CFG grammar in PalindromePDA (anbn)
+      const parseRes1 = pda2.setGrammar('S -> aSb | ε', 'Equal a\'s and b\'s');
+      const resAnBnAcc = pda2.simulate('aabb');
+      const resAnBnRej = pda2.simulate('aab');
+      recordTest(
+        'tbody-config',
+        'Custom CFG S → aSb | ε parse & accept ("aabb")',
+        'aabb',
+        'ACCEPTED',
+        parseRes1.success && resAnBnAcc.accepted === true,
+        `Grammar: ${pda2.grammar}`
+      );
+      recordTest(
+        'tbody-config',
+        'Custom CFG S → aSb | ε rejection ("aab")',
+        'aab',
+        'REJECTED',
+        resAnBnRej.accepted === false,
+        resAnBnRej.reason
+      );
+
+      // Test 4.5: Custom CFG allPalindromes (even and odd)
+      pda2.setGrammar('S -> aSa | bSb | a | b | ε', 'All Palindromes');
+      const resOddPalAcc = pda2.simulate('aba');
+      recordTest(
+        'tbody-config',
+        'Custom CFG All Palindromes accepts odd ("aba")',
+        'aba',
+        'ACCEPTED',
+        resOddPalAcc.accepted === true,
+        `Derivation: ${resOddPalAcc.analysis.derivation ? resOddPalAcc.analysis.derivation.join(' ⇒ ') : 'none'}`
+      );
+
+      // Test 4.6: Reset PalindromePDA back to default
+      pda2.resetToDefault();
+      const resResetQ2 = pda2.simulate('abba');
+      const resResetOdd = pda2.simulate('aba');
+      recordTest(
+        'tbody-config',
+        'PalindromePDA reset to default (abba accepted, aba rejected)',
+        'abba / aba',
+        'acc=true, rej=false',
+        resResetQ2.accepted === true && resResetOdd.accepted === false && pda2.isDefaultGrammar === true,
+        'Restored canonical even-length palindrome grammar'
       );
 
       // Update summary UI
