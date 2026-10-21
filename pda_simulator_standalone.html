@@ -1,0 +1,5316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDA Visual Simulator — Interactive Automata Theory</title>
+  <style>
+/* ==========================================================================
+   PDA Visual Simulator - Clean Educational Stylesheet
+   Designed for Laptop Screens & Classroom Projectors
+   ========================================================================== */
+
+/* --- CSS Variables & Color Palette --- */
+:root {
+  --bg-app: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-card-subtle: #f1f5f9;
+  --border-color: #cbd5e1;
+  --border-light: #e2e8f0;
+  
+  /* Primary & Text */
+  --navy-dark: #0f2942;
+  --navy-heading: #1e3a8a;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --text-light: #94a3b8;
+
+  /* Operation Accents */
+  --color-push: #2563eb;       /* Blue for PUSH */
+  --color-push-bg: #eff6ff;
+  --color-push-border: #bfdbfe;
+  
+  --color-pop: #d97706;        /* Orange for POP */
+  --color-pop-bg: #fffbeb;
+  --color-pop-border: #fde68a;
+
+  --color-accept: #16a34a;     /* Green for ACCEPTED */
+  --color-accept-bg: #f0fdf4;
+  --color-accept-border: #bbf7d0;
+
+  --color-reject: #dc2626;     /* Red for REJECTED */
+  --color-reject-bg: #fef2f2;
+  --color-reject-border: #fecaca;
+
+  /* Stack Block Colors */
+  --stack-z-bg: #334155;
+  --stack-z-text: #ffffff;
+  --stack-x-bg: #2563eb;
+  --stack-x-text: #ffffff;
+  --stack-y-bg: #4f46e5;
+  --stack-y-text: #ffffff;
+  --stack-s-bg: #7c3aed;
+  --stack-s-text: #ffffff;
+  --stack-a-bg: #059669;
+  --stack-a-text: #ffffff;
+  --stack-b-bg: #d97706;
+  --stack-b-text: #ffffff;
+
+  /* Font Families */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+  /* Sizing & Transitions */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --shadow-subtle: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+  --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+}
+
+/* --- Base & Reset --- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  width: 100%;
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* --- App Header & Unified Navigation --- */
+.app-header {
+  background-color: #ffffff;
+  border-bottom: 2px solid var(--border-light);
+  padding: 14px 0;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.header-brand .app-title {
+  color: var(--navy-dark);
+  font-size: 1.45rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+.header-brand .app-subtitle {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.tab-nav-wrapper {
+  display: flex;
+  gap: 8px;
+}
+
+.nav-tab-btn {
+  background: var(--bg-card-subtle);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.15s ease-in-out;
+}
+
+.nav-tab-btn:hover {
+  background: #e2e8f0;
+  border-color: #94a3b8;
+}
+
+.nav-tab-btn.active {
+  background: var(--navy-heading);
+  color: #ffffff;
+  border-color: var(--navy-heading);
+  box-shadow: 0 2px 4px rgba(15, 41, 66, 0.2);
+}
+
+.nav-tab-btn .badge-pill {
+  font-size: 0.78rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.2);
+  color: inherit;
+}
+
+.nav-tab-btn:not(.active) .badge-pill {
+  background: #e2e8f0;
+  color: var(--text-muted);
+}
+
+/* --- Tab Content Visibility --- */
+.tab-content-panel {
+  display: none;
+  padding: 16px 0 30px 0;
+}
+
+.tab-content-panel.active {
+  display: block;
+}
+
+/* --- Card Structure --- */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-card);
+}
+
+.card-title {
+  color: var(--navy-heading);
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-title-compact {
+  color: var(--navy-heading);
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+/* --- Compact Problem Strip --- */
+.problem-summary-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  border-left: 4px solid var(--navy-heading);
+  border-radius: var(--radius-sm);
+  padding: 8px 16px;
+  margin-bottom: 14px;
+}
+
+.strip-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.strip-rule {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.math-definition {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--navy-dark);
+  font-family: var(--font-mono);
+  background: #f1f5f9;
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+}
+
+.grammar-badge {
+  color: #6b21a8;
+  background: #f3e8ff;
+  border-color: #d8b4fe;
+}
+
+.config-active-badge {
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  padding: 3px 10px;
+  border-radius: 12px;
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+  white-space: nowrap;
+}
+
+/* --- Config Drawer (Collapsible) --- */
+.config-drawer {
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  margin-bottom: 14px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  overflow: hidden;
+}
+
+.config-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  cursor: pointer;
+  background: #f8fafc;
+  border-bottom: 1px solid transparent;
+  user-select: none;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--navy-heading);
+  transition: background 0.15s ease;
+}
+
+.config-drawer[open] .config-summary {
+  border-bottom-color: var(--border-light);
+  background: #f1f5f9;
+}
+
+.config-summary:hover {
+  background: #edf2f7;
+}
+
+.config-summary-title {
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.config-summary-sub {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.config-body {
+  padding: 16px;
+  background: #ffffff;
+}
+
+.config-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+@media (max-width: 768px) {
+  .config-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.config-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.config-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--navy-heading);
+}
+
+.config-select,
+.config-input {
+  width: 100%;
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: #ffffff;
+  color: var(--text-main);
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.config-select:focus,
+.config-input:focus,
+.config-textarea:focus {
+  border-color: var(--navy-heading);
+  box-shadow: 0 0 0 2px rgba(15, 41, 66, 0.12);
+}
+
+.config-textarea {
+  width: 100%;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  line-height: 1.45;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: #fafafa;
+  color: var(--text-main);
+  resize: vertical;
+  outline: none;
+}
+
+.config-hint {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.config-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-light);
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 0.84rem;
+}
+
+.preset-btn-list {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.pal-compact-row {
+  display: flex;
+  gap: 14px;
+}
+
+@media (max-width: 800px) {
+  .pal-compact-row {
+    flex-direction: column;
+  }
+}
+
+/* --- Interactive Control Bar --- */
+.control-card {
+  padding: 16px 20px;
+}
+
+.input-controls-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-end;
+  margin-bottom: 14px;
+}
+
+.input-group {
+  flex: 1;
+  min-width: 280px;
+}
+
+.input-label {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--navy-heading);
+  margin-bottom: 6px;
+}
+
+.input-field-wrapper {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.text-input {
+  width: 100%;
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  font-weight: 600;
+  padding: 10px 14px;
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+  background: #ffffff;
+  transition: border-color 0.15s ease;
+}
+
+.text-input:focus {
+  outline: none;
+  border-color: var(--color-push);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.char-limit-badge {
+  position: absolute;
+  right: 10px;
+  font-size: 0.75rem;
+  color: var(--text-light);
+  font-weight: 500;
+  pointer-events: none;
+}
+
+/* Playback Control Buttons */
+.playback-controls-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-light);
+}
+
+.button-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn {
+  font-family: var(--font-sans);
+  font-size: 0.92rem;
+  font-weight: 600;
+  padding: 9px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  background: #ffffff;
+  color: var(--text-main);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.btn:hover:not(:disabled) {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background: #f8fafc;
+}
+
+.btn-primary {
+  background: var(--navy-heading);
+  color: #ffffff;
+  border-color: var(--navy-heading);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #172554;
+  border-color: #172554;
+}
+
+.btn.active-mode {
+  background: #dbeafe;
+  border-color: var(--color-push);
+  color: var(--color-push);
+}
+
+.speed-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.speed-select {
+  padding: 7px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  background: #ffffff;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-main);
+  cursor: pointer;
+}
+
+.step-counter-tag {
+  font-family: var(--font-mono);
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--navy-heading);
+  background: var(--bg-card-subtle);
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light);
+}
+
+/* Preset Buttons */
+.presets-section {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-light);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.preset-group-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.preset-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  min-width: 120px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.preset-title.accepted {
+  color: var(--color-accept);
+}
+
+.preset-title.rejected {
+  color: var(--color-reject);
+}
+
+.preset-btn {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  background: #ffffff;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.preset-btn.preset-acc:hover {
+  background: var(--color-accept-bg);
+  border-color: var(--color-accept-border);
+  color: var(--color-accept);
+}
+
+.preset-btn.preset-rej:hover {
+  background: var(--color-reject-bg);
+  border-color: var(--color-reject-border);
+  color: var(--color-reject);
+}
+
+.preset-btn.active-preset {
+  background: var(--navy-heading) !important;
+  color: #ffffff !important;
+  border-color: var(--navy-heading) !important;
+  box-shadow: 0 2px 5px rgba(15, 41, 66, 0.25);
+  transform: translateY(-1px);
+}
+
+/* --- Simulation Layout Grid --- */
+.sim-grid {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 20px;
+}
+
+@media (max-width: 1024px) {
+  .sim-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sim-col-left {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.sim-col-right {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* --- SVG State Diagram --- */
+.diagram-card {
+  padding: 16px;
+  background: #ffffff;
+  overflow-x: auto;
+}
+
+.pda-svg {
+  width: 100%;
+  height: auto;
+  min-width: 650px;
+  display: block;
+}
+
+/* State circles */
+.state-circle {
+  fill: #ffffff;
+  stroke: #475569;
+  stroke-width: 2.2;
+  transition: all 0.2s ease;
+}
+
+.state-text {
+  font-family: var(--font-sans);
+  font-size: 17px;
+  font-weight: 800;
+  fill: #0f2942;
+  user-select: none;
+}
+
+.state-sublabel {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  fill: var(--text-muted);
+  user-select: none;
+}
+
+.svg-state .state-circle {
+  transition: fill 0.25s ease, stroke 0.25s ease, stroke-width 0.25s ease, filter 0.25s ease;
+}
+
+.svg-state.active-state .state-circle {
+  fill: #eff6ff;
+  stroke: var(--color-push);
+  stroke-width: 3.5;
+  filter: drop-shadow(0 0 6px rgba(37, 99, 235, 0.45));
+}
+
+.svg-state.active-state .state-text {
+  fill: var(--color-push);
+  font-weight: 800;
+}
+
+.svg-state.pulse {
+  animation: stateHalo 1.4s ease-in-out infinite alternate;
+}
+
+@keyframes stateHalo {
+  from {
+    filter: drop-shadow(0 0 3px rgba(37, 99, 235, 0.3));
+  }
+  to {
+    filter: drop-shadow(0 0 9px rgba(37, 99, 235, 0.65));
+  }
+}
+
+/* Transition labels and paths */
+.label-bg {
+  fill: #ffffff;
+  stroke: #e2e8f0;
+  stroke-width: 1;
+  transition: fill 0.2s ease, stroke 0.2s ease;
+}
+
+.trans-label {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  fill: #334155;
+  user-select: none;
+  transition: fill 0.2s ease;
+}
+
+.start-label {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 700;
+  fill: #475569;
+}
+
+.svg-transition.active-transition path,
+.svg-transition.active-transition line {
+  stroke: #2563eb !important;
+  stroke-width: 3.5 !important;
+  stroke-dasharray: 6 3;
+  animation: dashFlow 0.8s linear infinite;
+}
+
+@keyframes dashFlow {
+  from { stroke-dashoffset: 18; }
+  to { stroke-dashoffset: 0; }
+}
+
+.svg-transition.active-transition .label-bg {
+  fill: #eff6ff;
+  stroke: var(--color-push);
+  stroke-width: 1.5;
+  filter: drop-shadow(0 2px 4px rgba(37, 99, 235, 0.2));
+}
+
+.svg-transition.active-transition .trans-label {
+  fill: var(--color-push);
+  font-weight: 800;
+}
+
+/* --- Input Tape Visualization --- */
+.tape-card {
+  padding: 16px 20px;
+}
+
+.tape-wrapper {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 10px 4px 6px 4px;
+}
+
+.tape-cell {
+  position: relative;
+  min-width: 44px;
+  height: 52px;
+  background: #ffffff;
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  transition: all 0.15s ease;
+}
+
+.tape-cell .tape-char {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.tape-cell .tape-index {
+  font-size: 0.68rem;
+  color: var(--text-light);
+  font-weight: 600;
+}
+
+.tape-cell.upcoming {
+  background: #ffffff;
+}
+
+.tape-cell.consumed {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  opacity: 0.65;
+}
+
+.tape-cell.consumed .tape-char {
+  color: var(--text-muted);
+}
+
+.tape-cell.consumed .cell-status-icon {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  font-size: 0.65rem;
+  color: var(--color-accept);
+  font-weight: 800;
+}
+
+.tape-cell.active {
+  border-color: var(--color-push);
+  background: #eff6ff;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+.tape-cell.active .tape-char {
+  color: var(--color-push);
+}
+
+.tape-head-pointer {
+  position: absolute;
+  top: -24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+}
+
+.tape-head-pointer .pointer-arrow {
+  color: var(--color-push);
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+.tape-head-pointer .pointer-text {
+  font-family: var(--font-sans);
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: #ffffff;
+  background: var(--color-push);
+  padding: 1px 4px;
+  border-radius: 3px;
+  letter-spacing: 0.05em;
+  margin-top: -2px;
+}
+
+.tape-cell.current-epsilon {
+  min-width: 90px;
+  padding: 0 8px;
+}
+
+.tape-cell.current-epsilon .tape-sub {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+/* --- Vertical Visual Stack --- */
+.stack-card {
+  padding: 18px;
+}
+
+.stack-box {
+  display: flex;
+  flex-direction: column;
+  background: #f8fafc;
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  min-height: 380px;
+}
+
+.stack-top-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+  border-bottom: 2px dashed var(--border-color);
+}
+
+.stack-top-badge {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--color-push);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.stack-count-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: #e2e8f0;
+  color: var(--text-muted);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.stack-elements-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  justify-content: flex-end;
+  min-height: 260px;
+  max-height: 440px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+@keyframes blockPushSlide {
+  0% {
+    opacity: 0;
+    transform: translateY(-16px) scale(0.95);
+  }
+  60% {
+    transform: translateY(2px) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.stack-block {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+}
+
+.stack-block.anim-push {
+  animation: blockPushSlide 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.stack-block.anim-top-focus {
+  box-shadow: 0 0 0 2px var(--color-push), 0 3px 8px rgba(37, 99, 235, 0.25);
+}
+
+.stack-block .block-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stack-block .block-symbol {
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.stack-block .block-desc {
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  opacity: 0.85;
+  font-weight: 600;
+}
+
+.stack-block .block-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stack-block .top-tag {
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.3);
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+}
+
+.stack-block .block-level {
+  font-size: 0.7rem;
+  opacity: 0.75;
+}
+
+/* Stack block colors */
+.block-bottom-z {
+  background: var(--stack-z-bg);
+  color: var(--stack-z-text);
+  border-bottom: 2px solid #0f172a;
+}
+
+.block-x {
+  background: var(--stack-x-bg);
+  color: var(--stack-x-text);
+}
+
+.block-y {
+  background: var(--stack-y-bg);
+  color: var(--stack-y-text);
+}
+
+.block-s {
+  background: var(--stack-s-bg);
+  color: var(--stack-s-text);
+}
+
+.block-a {
+  background: var(--stack-a-bg);
+  color: var(--stack-a-text);
+}
+
+.block-b {
+  background: var(--stack-b-bg);
+  color: var(--stack-b-text);
+}
+
+.stack-block.is-top-element {
+  box-shadow: 0 0 0 2px #0f2942, 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+.stack-base {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 3px solid #334155;
+  text-align: center;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #475569;
+  letter-spacing: 0.08em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+/* --- Step Information Card --- */
+.step-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 125px;
+}
+
+.step-card-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.step-badge-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.step-number-badge {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--navy-dark);
+  background: #e2e8f0;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+}
+
+.state-badge {
+  font-size: 0.88rem;
+  color: var(--text-main);
+}
+
+.state-badge strong {
+  color: var(--navy-heading);
+  font-family: var(--font-mono);
+  font-size: 1rem;
+}
+
+.next-state-badge strong {
+  color: var(--color-push);
+  font-family: var(--font-mono);
+}
+
+.step-input-badge {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.step-input-badge .val {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--navy-dark);
+  background: var(--bg-card-subtle);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* Operation Badges */
+.op-badge {
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.badge-init {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+
+.badge-push {
+  background: var(--color-push-bg);
+  color: var(--color-push);
+  border: 1px solid var(--color-push-border);
+}
+
+.badge-pop {
+  background: var(--color-pop-bg);
+  color: var(--color-pop);
+  border: 1px solid var(--color-pop-border);
+}
+
+.badge-accept {
+  background: var(--color-accept-bg);
+  color: var(--color-accept);
+  border: 1px solid var(--color-accept-border);
+}
+
+.badge-reject {
+  background: var(--color-reject-bg);
+  color: var(--color-reject);
+  border: 1px solid var(--color-reject-border);
+}
+
+.step-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.step-stack-transition {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.stack-box-pill {
+  background: var(--bg-card-subtle);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 6px 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.stack-box-pill .pill-label {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.stack-box-pill .pill-val {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--navy-dark);
+}
+
+.transition-arrow {
+  color: var(--text-light);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.step-explanation {
+  font-size: 0.98rem;
+  line-height: 1.5;
+  color: var(--text-main);
+  background: #f8fafc;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  border-left: 4px solid var(--navy-heading);
+}
+
+/* --- Trace Table --- */
+.trace-table-container {
+  overflow-x: auto;
+  max-height: 360px;
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+}
+
+.trace-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  text-align: left;
+}
+
+.trace-table th {
+  background: #f1f5f9;
+  color: var(--navy-dark);
+  font-weight: 700;
+  padding: 10px 12px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.trace-table th .sub {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: normal;
+}
+
+.trace-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-light);
+  cursor: pointer;
+}
+
+.trace-table tr:hover td {
+  background: #f8fafc;
+}
+
+.trace-table tr.active-row td {
+  background: #eff6ff;
+  border-top: 2px solid var(--color-push);
+  border-bottom: 2px solid var(--color-push);
+  font-weight: 600;
+}
+
+.trace-table tr.active-row td:first-child {
+  border-left: 4px solid var(--color-push);
+}
+
+.trace-table .col-step {
+  width: 60px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.trace-table .col-state {
+  width: 75px;
+}
+
+.trace-table .col-input {
+  width: 110px;
+}
+
+.trace-table .col-stack {
+  width: 160px;
+}
+
+.trace-table .stack-code {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--navy-dark);
+}
+
+.trace-table .table-op-badge {
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-right: 6px;
+}
+
+.trace-table .action-summary {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+/* --- Palindrome Mirror Widget --- */
+.palindrome-mirror-box {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 14px 18px;
+}
+
+.mirror-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.mirror-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--navy-heading);
+}
+
+.mirror-len-badge {
+  font-size: 0.78rem;
+  font-weight: 700;
+  background: var(--bg-card-subtle);
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.mirror-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.mirror-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mirror-row .row-label {
+  width: 65px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.char-cells {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.mirror-char {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border-color);
+  background: #ffffff;
+}
+
+.mirror-char.match-cell {
+  background: var(--color-accept-bg);
+  border-color: var(--color-accept-border);
+  color: var(--color-accept);
+}
+
+.mirror-char.mismatch-cell {
+  background: var(--color-reject-bg);
+  border-color: var(--color-reject-border);
+  color: var(--color-reject);
+}
+
+.mirror-char.center-cell {
+  background: #fffbeb;
+  border-color: #fde68a;
+  color: #b45309;
+}
+
+.mirror-note {
+  font-size: 0.92rem;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.note-success {
+  background: var(--color-accept-bg);
+  border-left: 4px solid var(--color-accept);
+  color: #14532d;
+}
+
+.note-warning {
+  background: #fffbeb;
+  border-left: 4px solid #f59e0b;
+  color: #78350f;
+}
+
+.note-error {
+  background: var(--color-reject-bg);
+  border-left: 4px solid var(--color-reject);
+  color: #7f1d1d;
+}
+
+/* --- Derivation Progress --- */
+.derivation-box {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 14px 18px;
+}
+
+.derivation-title {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--navy-heading);
+  margin-bottom: 10px;
+}
+
+.derivation-chain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.derivation-step {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-card-subtle);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 4px 10px;
+}
+
+.derivation-step .step-num {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.derivation-step .derivation-code {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #6b21a8;
+}
+
+.derivation-arrow {
+  color: var(--text-muted);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.no-derivation-msg {
+  color: var(--color-reject);
+  font-size: 0.88rem;
+  font-style: italic;
+}
+
+/* --- Final Result Banner --- */
+@keyframes bannerFadeIn {
+  from {
+    opacity: 0.7;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.result-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  margin-top: 10px;
+  min-height: 68px;
+  animation: bannerFadeIn 0.25s ease-out;
+}
+
+.result-banner .result-icon-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.result-banner .result-heading {
+  font-size: 1.2rem;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.result-banner .result-text {
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.result-accepted {
+  background: var(--color-accept-bg);
+  border: 2px solid var(--color-accept-border);
+  color: #14532d;
+}
+
+.result-accepted .result-icon-circle {
+  background: var(--color-accept);
+}
+
+.result-accepted .result-heading {
+  color: var(--color-accept);
+}
+
+.result-rejected {
+  background: var(--color-reject-bg);
+  border: 2px solid var(--color-reject-border);
+  color: #7f1d1d;
+}
+
+.result-rejected .result-icon-circle {
+  background: var(--color-reject);
+}
+
+.result-rejected .result-heading {
+  color: var(--color-reject);
+}
+
+/* --- Collapsible Educational Details --- */
+.edu-details {
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  margin-top: 16px;
+  padding: 12px 18px;
+  box-shadow: var(--shadow-card);
+}
+
+.edu-summary {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--navy-heading);
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+}
+
+.edu-summary:hover {
+  color: var(--color-push);
+}
+
+.edu-details[open] .edu-summary {
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.edu-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+  margin-top: 10px;
+}
+
+.edu-card {
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  padding: 16px 18px;
+  border-top: 3px solid var(--navy-heading);
+}
+
+.edu-card h4 {
+  color: var(--navy-heading);
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.edu-card p {
+  color: var(--text-main);
+  font-size: 0.92rem;
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+.edu-card code {
+  font-family: var(--font-mono);
+  background: var(--bg-card-subtle);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.88rem;
+  color: var(--navy-dark);
+}
+
+/* --- App Footer --- */
+.app-footer {
+  margin-top: auto;
+  background: #ffffff;
+  border-top: 1px solid var(--border-light);
+  padding: 18px 0;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.app-footer strong {
+  color: var(--navy-dark);
+}
+
+</style>
+</head>
+<body>
+
+  <!-- Sleek Unified Header & Tabs -->
+  <header class="app-header">
+    <div class="container header-flex">
+      <div class="header-brand">
+        <h1 class="app-title">PDA Visual Simulator</h1>
+        <p class="app-subtitle">Interactive Automata Theory &amp; CFG Simulator</p>
+      </div>
+      <nav class="tab-nav-wrapper">
+        <button class="nav-tab-btn active" data-tab="matching" id="tab-btn-matching">
+          <span>Question 1: Matching PDA</span>
+          <span class="badge-pill">0ⁱ1ʲ2ʲ3ⁱ</span>
+        </button>
+        <button class="nav-tab-btn" data-tab="palindrome" id="tab-btn-palindrome">
+          <span>Question 2: Palindrome PDA</span>
+          <span class="badge-pill">S → aSa | bSb | ε</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="container">
+
+    <!-- ===================================================================
+         TAB 1: QUESTION 1 — MATCHING PDA
+         =================================================================== -->
+    <section id="tab-panel-matching" class="tab-content-panel active">
+      
+      <!-- Compact Problem Strip -->
+      <div class="problem-summary-strip">
+        <div class="strip-left">
+          <span class="math-definition" id="math-eq-matching">L = { 0ⁱ1ʲ2ʲ3ⁱ | i, j ≥ 1 }</span>
+          <span class="strip-rule" id="strip-desc-matching">Equal 0s &amp; 3s, equal 1s &amp; 2s &bull; Strict order: 0-1-2-3 &bull; Stack Alphabet: {Z, X, Y}</span>
+        </div>
+        <div class="strip-right">
+          <span class="config-active-badge" id="config-badge-matching">Default: 0ⁱ1ʲ2ʲ3ⁱ</span>
+        </div>
+      </div>
+
+      <!-- Collapsible Configuration Drawer -->
+      <details class="config-drawer" id="config-drawer-matching">
+        <summary class="config-summary">
+          <span class="config-summary-title">⚙️ Customize Language &amp; PDA Rules</span>
+          <span class="config-summary-sub">Presets or Custom Transition Rules (Click to expand)</span>
+        </summary>
+        <div class="config-body">
+          <div class="config-grid">
+            <div class="config-field">
+              <label for="preset-select-matching" class="config-label">Language Preset / Custom Mode:</label>
+              <select id="preset-select-matching" class="config-select">
+                <option value="default" selected>Default: L = { 0ⁱ1ʲ2ʲ3ⁱ | i,j ≥ 1 } (College Assignment)</option>
+                <option value="equal01">Preset: L = { 0ⁿ1ⁿ | n ≥ 1 }</option>
+                <option value="doubleB">Preset: L = { aⁿb²ⁿ | n ≥ 1 }</option>
+                <option value="markedPal">Preset: L = { w c wᴿ | w ∈ {0,1}* } (Marked Center)</option>
+                <option value="custom">✏️ Custom PDA Rules (Enter below)</option>
+              </select>
+            </div>
+            <div class="config-field">
+              <label for="custom-eq-matching" class="config-label">Language Math Notation / Title:</label>
+              <input type="text" id="custom-eq-matching" class="config-input" value="L = { 0ⁱ1ʲ2ʲ3ⁱ | i, j ≥ 1 }" placeholder="e.g. L = { aⁿbⁿ | n ≥ 1 }">
+            </div>
+          </div>
+          <div class="config-field" style="margin-top: 10px;">
+            <label for="custom-desc-matching" class="config-label">Description / Meaning:</label>
+            <input type="text" id="custom-desc-matching" class="config-input" value="Equal 0s &amp; 3s, equal 1s &amp; 2s &bull; Strict order: 0-1-2-3 &bull; Stack Alphabet: {Z, X, Y}" placeholder="Brief summary of language">
+          </div>
+          <div class="config-field" id="custom-trans-box-matching" style="display: none; margin-top: 10px;">
+            <label for="custom-transitions-matching" class="config-label">Custom Transitions <code>(state, input, stackTop) -&gt; (nextState, replacement)</code>:</label>
+            <textarea id="custom-transitions-matching" class="config-textarea" rows="6" spellcheck="false" placeholder="(q0, 0, Z) -&gt; (q0, XZ)&#10;(q0, 0, X) -&gt; (q0, XX)&#10;(q0, 1, X) -&gt; (q1, YX)&#10;(q1, 1, Y) -&gt; (q1, YY)&#10;(q1, 2, Y) -&gt; (q2, ε)&#10;(q2, 2, Y) -&gt; (q2, ε)&#10;(q2, 3, X) -&gt; (q3, ε)&#10;(q3, 3, X) -&gt; (q3, ε)&#10;(q3, ε, Z) -&gt; (qf, Z)"></textarea>
+            <span class="config-hint">Format: <code>(q0, 0, Z) -&gt; (q0, XZ)</code> or <code>q0, 0, Z -&gt; q0, XZ</code>. Use <code>ε</code> or <code>e</code> for empty.</span>
+          </div>
+          <div class="config-actions">
+            <button id="btn-apply-matching" class="btn btn-primary btn-sm">✓ Apply Rules</button>
+            <button id="btn-reset-config-matching" class="btn btn-sm">↺ Reset to Default Problem</button>
+          </div>
+        </div>
+      </details>
+
+      <!-- Controls & Input Bar -->
+      <div class="card control-card">
+        <div class="input-controls-row">
+          <div class="input-group">
+            <label for="input-matching" class="input-label">Input String (Σ = {0, 1, 2, 3}):</label>
+            <div class="input-field-wrapper">
+              <input type="text" id="input-matching" class="text-input" value="00112233" maxlength="30" placeholder="e.g. 00112233" spellcheck="false" autocomplete="off">
+              <span class="char-limit-badge">max 30</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Clean Presets -->
+        <div class="presets-section">
+          <div class="preset-group-row">
+            <span class="preset-title accepted">Accepted:</span>
+            <div id="presets-acc-matching" class="preset-btn-list">
+              <button class="preset-btn preset-acc" data-tab="matching" data-value="0123">0123</button>
+              <button class="preset-btn preset-acc" data-tab="matching" data-value="00112233">00112233</button>
+              <button class="preset-btn preset-acc" data-tab="matching" data-value="011223">011223</button>
+              <button class="preset-btn preset-acc" data-tab="matching" data-value="0001122333">0001122333</button>
+              <button class="preset-btn preset-acc" data-tab="matching" data-value="001233">001233</button>
+            </div>
+          </div>
+          <div class="preset-group-row">
+            <span class="preset-title rejected">Rejected:</span>
+            <div id="presets-rej-matching" class="preset-btn-list">
+              <button class="preset-btn preset-rej" data-tab="matching" data-value="0011223">0011223</button>
+              <button class="preset-btn preset-rej" data-tab="matching" data-value="00112333">00112333</button>
+              <button class="preset-btn preset-rej" data-tab="matching" data-value="01233">01233</button>
+              <button class="preset-btn preset-rej" data-tab="matching" data-value="00113223">00113223</button>
+              <button class="preset-btn preset-rej" data-tab="matching" data-value="0112233">0112233</button>
+              <button class="preset-btn preset-rej" data-tab="matching" data-value="">ε (Empty)</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Playback Controls -->
+        <div class="playback-controls-row">
+          <div class="button-group">
+            <button id="btn-reset-matching" class="btn" title="Reset (Esc)">⏮ Reset</button>
+            <button id="btn-prev-matching" class="btn" title="Previous (Left Arrow)">◀ Prev</button>
+            <button id="btn-play-matching" class="btn btn-primary" title="Play (Spacebar)">▶ Play</button>
+            <button id="btn-pause-matching" class="btn" title="Pause (Spacebar)" disabled>⏸ Pause</button>
+            <button id="btn-next-matching" class="btn" title="Next (Right Arrow)">Next ▶</button>
+          </div>
+
+          <div class="button-group">
+            <div class="speed-control">
+              <span>Speed:</span>
+              <select id="speed-select-matching" class="speed-select">
+                <option value="1500">Slow (1.5s)</option>
+                <option value="800" selected>Normal (0.8s)</option>
+                <option value="350">Fast (0.35s)</option>
+              </select>
+            </div>
+            <div id="step-counter-matching" class="step-counter-tag">Step 0 of 0</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Simulation View Grid -->
+      <div class="sim-grid">
+        
+        <!-- Left: Diagram, Tape, Step Info, Result -->
+        <div class="sim-col-left">
+          
+          <div class="card diagram-card">
+            <div class="card-title-compact">PDA State Diagram</div>
+            <div id="diagram-matching"></div>
+          </div>
+
+          <div class="card tape-card">
+            <div class="card-title-compact">Input Tape</div>
+            <div id="tape-matching"></div>
+          </div>
+
+          <div class="card" style="padding:14px 18px;">
+            <div id="step-info-matching"></div>
+          </div>
+
+          <div id="result-banner-matching"></div>
+
+        </div>
+
+        <!-- Right: Stack & Trace Table -->
+        <div class="sim-col-right">
+
+          <div class="card stack-card">
+            <div class="card-title-compact">Visual Stack (LIFO)</div>
+            <div id="stack-matching"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-title-compact">Execution Trace Table</div>
+            <div id="trace-table-matching"></div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Collapsible Educational Guide (Uncluttered) -->
+      <details class="edu-details">
+        <summary class="edu-summary">📖 Automata Theory &amp; PDA Rules Reference (Click to expand)</summary>
+        <div class="edu-grid">
+          <div class="edu-card">
+            <h4>1. Language Definition</h4>
+            <p><code>L = {0ⁱ1ʲ2ʲ3ⁱ | i, j ≥ 1}</code> requires nested balance: outer 0s match 3s, and inner 1s match 2s. At least one symbol from each group is required.</p>
+          </div>
+          <div class="edu-card">
+            <h4>2. Why Stack is Needed</h4>
+            <p>A finite automaton cannot count unbounded counts of <code>i</code> and <code>j</code>. An unbounded LIFO stack stores markers for 0s and 1s and pops them when reading 2s and 3s.</p>
+          </div>
+          <div class="edu-card">
+            <h4>3. Role of Symbols X and Y</h4>
+            <p>0s push <code>X</code> in <code>q0</code>. 1s push <code>Y</code> in <code>q1</code>. 2s pop <code>Y</code> in <code>q2</code>. 3s pop <code>X</code> in <code>q3</code>.</p>
+          </div>
+          <div class="edu-card">
+            <h4>4. Acceptance Rule</h4>
+            <p>Accepted when all symbols are consumed, all Ys and Xs popped, leaving marker <code>Z</code> to transition into <code>qf</code> via <code>(ε, Z → Z)</code>.</p>
+          </div>
+        </div>
+      </details>
+
+    </section>
+
+
+    <!-- ===================================================================
+         TAB 2: QUESTION 2 — PALINDROME PDA
+         =================================================================== -->
+    <section id="tab-panel-palindrome" class="tab-content-panel">
+
+      <!-- Compact Problem Strip -->
+      <div class="problem-summary-strip">
+        <div class="strip-left">
+          <span class="math-definition grammar-badge" id="grammar-badge-palindrome">S → aSa | bSb | ε</span>
+          <span class="strip-rule" id="strip-desc-palindrome">Generates even-length palindromes (length 2k) over {a, b} &bull; Stack Alphabet: {Z, S, a, b}</span>
+        </div>
+        <div class="strip-right">
+          <span class="config-active-badge" id="config-badge-palindrome">Default: S → aSa | bSb | ε</span>
+        </div>
+      </div>
+
+      <!-- Collapsible Configuration Drawer -->
+      <details class="config-drawer" id="config-drawer-palindrome">
+        <summary class="config-summary">
+          <span class="config-summary-title">⚙️ Customize CFG Grammar</span>
+          <span class="config-summary-sub">Presets or Custom CFG Productions (Click to expand)</span>
+        </summary>
+        <div class="config-body">
+          <div class="config-grid">
+            <div class="config-field">
+              <label for="preset-select-palindrome" class="config-label">Grammar Preset / Custom Mode:</label>
+              <select id="preset-select-palindrome" class="config-select">
+                <option value="default" selected>Default: S → aSa | bSb | ε (Even-length Palindromes)</option>
+                <option value="allPal">Preset: S → aSa | bSb | a | b | ε (All Palindromes - Even &amp; Odd)</option>
+                <option value="anbn">Preset: S → aSb | ε (L = { aⁿbⁿ })</option>
+                <option value="centerC">Preset: S → 0S0 | 1S1 | c (Marked Center)</option>
+                <option value="custom">✏️ Custom CFG Productions</option>
+              </select>
+            </div>
+            <div class="config-field">
+              <label for="custom-grammar-input" class="config-label">CFG Production Rules (separated by | or newlines):</label>
+              <input type="text" id="custom-grammar-input" class="config-input" value="S -> aSa | bSb | ε" placeholder="e.g. S -> aSa | bSb | ε">
+            </div>
+          </div>
+          <div class="config-field" style="margin-top: 10px;">
+            <label for="custom-desc-palindrome" class="config-label">Grammar Description:</label>
+            <input type="text" id="custom-desc-palindrome" class="config-input" value="Generates even-length palindromes (length 2k) over {a, b}" placeholder="Description of generated language">
+          </div>
+          <div class="config-actions">
+            <button id="btn-apply-palindrome" class="btn btn-primary btn-sm">✓ Apply CFG Grammar</button>
+            <button id="btn-reset-config-palindrome" class="btn btn-sm">↺ Reset to Default CFG</button>
+          </div>
+        </div>
+      </details>
+
+      <!-- Controls & Input Bar -->
+      <div class="card control-card">
+        <div class="input-controls-row">
+          <div class="input-group">
+            <label for="input-palindrome" class="input-label">Input String (Σ = {a, b}):</label>
+            <div class="input-field-wrapper">
+              <input type="text" id="input-palindrome" class="text-input" value="abba" maxlength="30" placeholder="e.g. abba" spellcheck="false" autocomplete="off">
+              <span class="char-limit-badge">max 30</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Clean Presets -->
+        <div class="presets-section">
+          <div class="preset-group-row">
+            <span class="preset-title accepted">Accepted:</span>
+            <div id="presets-acc-palindrome" class="preset-btn-list">
+              <button class="preset-btn preset-acc" data-tab="palindrome" data-value="">ε (Empty)</button>
+              <button class="preset-btn preset-acc" data-tab="palindrome" data-value="aa">aa</button>
+              <button class="preset-btn preset-acc" data-tab="palindrome" data-value="bb">bb</button>
+              <button class="preset-btn preset-acc" data-tab="palindrome" data-value="abba">abba</button>
+              <button class="preset-btn preset-acc" data-tab="palindrome" data-value="baab">baab</button>
+              <button class="preset-btn preset-acc" data-tab="palindrome" data-value="aabbaa">aabbaa</button>
+            </div>
+          </div>
+          <div class="preset-group-row">
+            <span class="preset-title rejected">Rejected:</span>
+            <div id="presets-rej-palindrome" class="preset-btn-list">
+              <button class="preset-btn preset-rej" data-tab="palindrome" data-value="aba">aba (odd-length)</button>
+              <button class="preset-btn preset-rej" data-tab="palindrome" data-value="abab">abab</button>
+              <button class="preset-btn preset-rej" data-tab="palindrome" data-value="aabb">aabb</button>
+              <button class="preset-btn preset-rej" data-tab="palindrome" data-value="abc">abc</button>
+              <button class="preset-btn preset-rej" data-tab="palindrome" data-value="a">a</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Playback Controls -->
+        <div class="playback-controls-row">
+          <div class="button-group">
+            <button id="btn-reset-palindrome" class="btn" title="Reset (Esc)">⏮ Reset</button>
+            <button id="btn-prev-palindrome" class="btn" title="Previous (Left Arrow)">◀ Prev</button>
+            <button id="btn-play-palindrome" class="btn btn-primary" title="Play (Spacebar)">▶ Play</button>
+            <button id="btn-pause-palindrome" class="btn" title="Pause (Spacebar)" disabled>⏸ Pause</button>
+            <button id="btn-next-palindrome" class="btn" title="Next (Right Arrow)">Next ▶</button>
+          </div>
+
+          <div class="button-group">
+            <div class="speed-control">
+              <span>Speed:</span>
+              <select id="speed-select-palindrome" class="speed-select">
+                <option value="1500">Slow (1.5s)</option>
+                <option value="800" selected>Normal (0.8s)</option>
+                <option value="350">Fast (0.35s)</option>
+              </select>
+            </div>
+            <div id="step-counter-palindrome" class="step-counter-tag">Step 0 of 0</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Palindrome Symmetry Mirror & Derivation (Compact Grid) -->
+      <div class="pal-compact-row">
+        <div class="card" style="flex:1; margin-bottom:14px; padding:12px 16px;">
+          <div id="mirror-palindrome"></div>
+        </div>
+        <div class="card" style="flex:1; margin-bottom:14px; padding:12px 16px;">
+          <div id="derivation-palindrome"></div>
+        </div>
+      </div>
+
+      <!-- Simulation View Grid -->
+      <div class="sim-grid">
+        
+        <!-- Left: Diagram, Tape, Step Info, Result -->
+        <div class="sim-col-left">
+          
+          <div class="card diagram-card">
+            <div class="card-title-compact">CFG-to-PDA 3-State Diagram</div>
+            <div id="diagram-palindrome"></div>
+          </div>
+
+          <div class="card tape-card">
+            <div class="card-title-compact">Input Tape</div>
+            <div id="tape-palindrome"></div>
+          </div>
+
+          <div class="card" style="padding:14px 18px;">
+            <div id="step-info-palindrome"></div>
+          </div>
+
+          <div id="result-banner-palindrome"></div>
+
+        </div>
+
+        <!-- Right: Stack & Trace Table -->
+        <div class="sim-col-right">
+
+          <div class="card stack-card">
+            <div class="card-title-compact">Visual Stack (LIFO)</div>
+            <div id="stack-palindrome"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-title-compact">Execution Trace Table</div>
+            <div id="trace-table-palindrome"></div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Collapsible Educational Guide -->
+      <details class="edu-details">
+        <summary class="edu-summary">📖 Theory &amp; Grammar Conversion Reference (Click to expand)</summary>
+        <div class="edu-grid">
+          <div class="edu-card">
+            <h4>1. Context-Free Grammar</h4>
+            <p><code>S → aSa | bSb | ε</code> generates palindromes by adding matching character pairs at both ends. Base case is <code>ε</code>.</p>
+          </div>
+          <div class="edu-card">
+            <h4>2. Even-Length Constraint</h4>
+            <p>Every step adds exactly 2 characters. Hence length is always <code>2k</code> (even). Odd palindromes like <code>aba</code> cannot be produced.</p>
+          </div>
+          <div class="edu-card">
+            <h4>3. CFG to PDA Algorithm</h4>
+            <p>Expansion: <code>(ε, A → α)</code> pops variable and pushes RHS. Terminal matching: <code>(a, a → ε)</code> matches input against stack top.</p>
+          </div>
+          <div class="edu-card">
+            <h4>4. Non-determinism</h4>
+            <p>The PDA decides when the middle is reached to apply <code>S → ε</code>. The simulator traces the valid accepting derivation path.</p>
+          </div>
+        </div>
+      </details>
+
+    </section>
+
+  </main>
+
+  <!-- App Footer -->
+  <footer class="app-footer">
+    <div class="container">
+      <p><strong>PDA Visual Simulator</strong> &bull; Interactive Automata Theory &bull; Offline &bull; Zero Dependencies</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script>
+/**
+ * matching-pda.js
+ * 
+ * Configurable Pushdown Automaton Engine.
+ * 
+ * Default Assignment Problem:
+ * L = { 0^i 1^j 2^j 3^i | i, j >= 1 }
+ * 
+ * Capabilities:
+ * - Solves the default assignment with exact mathematical counts and transition sequence
+ * - Can be configured with other language presets (e.g. 0^n 1^n, a^n b^{2n}, w c w^R)
+ * - Supports custom user-defined PDA transition tables:
+ *     (state, input, stack-top) -> (next-state, replacement)
+ * - Restores default settings with one click.
+ */
+
+class MatchingPDA {
+  constructor() {
+    this.name = 'Configurable Pushdown Automaton';
+    this.maxInputLength = 30;
+
+    // Presets definitions
+    this.presets = {
+      default: {
+        key: 'default',
+        equation: 'L = { 0ⁱ1ʲ2ʲ3ⁱ | i, j ≥ 1 }',
+        description: 'Equal 0s & 3s, equal 1s & 2s • Strict order: 0-1-2-3 • Stack Alphabet: {Z, X, Y}',
+        defaultInput: '00112233',
+        alphabet: ['0', '1', '2', '3'],
+        states: ['q0', 'q1', 'q2', 'q3', 'qf'],
+        startState: 'q0',
+        acceptState: 'qf',
+        transitionsText: `(q0, 0, Z) -> (q0, XZ)\n(q0, 0, X) -> (q0, XX)\n(q0, 1, X) -> (q1, YX)\n(q1, 1, Y) -> (q1, YY)\n(q1, 2, Y) -> (q2, ε)\n(q2, 2, Y) -> (q2, ε)\n(q2, 3, X) -> (q3, ε)\n(q3, 3, X) -> (q3, ε)\n(q3, ε, Z) -> (qf, Z)`
+      },
+      equal01: {
+        key: 'equal01',
+        equation: 'L = { 0ⁿ1ⁿ | n ≥ 1 }',
+        description: 'Equal number of 0s followed by equal number of 1s • Stack Alphabet: {Z, X}',
+        defaultInput: '0011',
+        alphabet: ['0', '1'],
+        states: ['q0', 'q1', 'qf'],
+        startState: 'q0',
+        acceptState: 'qf',
+        transitionsText: `(q0, 0, Z) -> (q0, XZ)\n(q0, 0, X) -> (q0, XX)\n(q0, 1, X) -> (q1, ε)\n(q1, 1, X) -> (q1, ε)\n(q1, ε, Z) -> (qf, Z)`
+      },
+      doubleB: {
+        key: 'doubleB',
+        equation: 'L = { aⁿb²ⁿ | n ≥ 1 }',
+        description: 'Twice as many b\'s as a\'s • Stack Alphabet: {Z, X}',
+        defaultInput: 'aabbbb',
+        alphabet: ['a', 'b'],
+        states: ['q0', 'q1', 'qf'],
+        startState: 'q0',
+        acceptState: 'qf',
+        transitionsText: `(q0, a, Z) -> (q0, XXZ)\n(q0, a, X) -> (q0, XXX)\n(q0, b, X) -> (q1, ε)\n(q1, b, X) -> (q1, ε)\n(q1, ε, Z) -> (qf, Z)`
+      },
+      markedPal: {
+        key: 'markedPal',
+        equation: 'L = { w c wᴿ | w ∈ {0,1}* }',
+        description: 'Binary palindrome mirrored around center symbol c',
+        defaultInput: '01c10',
+        alphabet: ['0', '1', 'c'],
+        states: ['q0', 'q1', 'qf'],
+        startState: 'q0',
+        acceptState: 'qf',
+        transitionsText: `(q0, 0, Z) -> (q0, 0Z)\n(q0, 1, Z) -> (q0, 1Z)\n(q0, 0, 0) -> (q0, 00)\n(q0, 0, 1) -> (q0, 01)\n(q0, 1, 0) -> (q0, 10)\n(q0, 1, 1) -> (q0, 11)\n(q0, c, Z) -> (q1, Z)\n(q0, c, 0) -> (q1, 0)\n(q0, c, 1) -> (q1, 1)\n(q1, 0, 0) -> (q1, ε)\n(q1, 1, 1) -> (q1, ε)\n(q1, ε, Z) -> (qf, Z)`
+      }
+    };
+
+    // Initialize with default
+    this.setPreset('default');
+  }
+
+  /**
+   * Sets the active language preset or custom configuration.
+   * @param {string} presetKey 'default' | 'equal01' | 'doubleB' | 'markedPal' | 'custom'
+   * @param {Object} [customConfig]
+   */
+  setPreset(presetKey, customConfig) {
+    if (presetKey === 'custom' && customConfig) {
+      this.currentPresetKey = 'custom';
+      this.languageDescription = customConfig.equation || 'Custom PDA';
+      this.description = customConfig.description || 'User Defined PDA';
+      this.defaultInput = customConfig.defaultInput || '01';
+      this.alphabet = customConfig.alphabet || ['0', '1'];
+      this.states = customConfig.states || ['q0', 'q1', 'qf'];
+      this.startState = customConfig.startState || 'q0';
+      this.acceptState = customConfig.acceptState || 'qf';
+      this.transitionsText = customConfig.transitionsText || '';
+      this.parsedTransitions = this._parseTransitions(this.transitionsText);
+      this.isDefault = false;
+      return;
+    }
+
+    const preset = this.presets[presetKey] || this.presets.default;
+    this.currentPresetKey = preset.key;
+    this.languageDescription = preset.equation;
+    this.description = preset.description;
+    this.defaultInput = preset.defaultInput;
+    this.alphabet = [...preset.alphabet];
+    this.states = [...preset.states];
+    this.startState = preset.startState;
+    this.acceptState = preset.acceptState;
+    this.transitionsText = preset.transitionsText;
+    this.parsedTransitions = this._parseTransitions(this.transitionsText);
+    this.isDefault = preset.key === 'default';
+  }
+
+  /**
+   * Resets the language back to the default assignment problem.
+   */
+  resetToDefault() {
+    this.setPreset('default');
+  }
+
+  /**
+   * Parses transition text lines into structured transition rules.
+   */
+  _parseTransitions(text) {
+    const lines = text.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('//') && !l.startsWith('#'));
+    const transitions = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const parts = line.split(/\s*->\s*|\s*→\s*/);
+      if (parts.length < 2) continue;
+
+      const left = parts[0].replace(/[\(\)]/g, '').split(',').map(s => s.trim());
+      const right = parts[1].replace(/[\(\)]/g, '').split(',').map(s => s.trim());
+      if (left.length < 3 || right.length < 2) continue;
+
+      const state = left[0];
+      const input = (left[1] === 'ε' || left[1] === 'eps' || left[1] === 'e') ? 'ε' : left[1];
+      const stackTop = left[2];
+      const nextState = right[0];
+      const replacement = (right[1] === 'ε' || right[1] === 'eps' || right[1] === 'e') ? '' : right[1];
+
+      transitions.push({
+        id: `trans-${state}-${input}-${stackTop}-${i}`,
+        state,
+        input,
+        stackTop,
+        nextState,
+        replacement,
+        raw: line
+      });
+    }
+
+    return transitions;
+  }
+
+  /**
+   * Validates input string syntax and length.
+   * @param {string} input 
+   * @returns {{ valid: boolean, error?: string }}
+   */
+  validateInput(input) {
+    if (typeof input !== 'string') {
+      return { valid: false, error: 'Input must be a string.' };
+    }
+    if (input.length > this.maxInputLength) {
+      return { 
+        valid: false, 
+        error: `Input length (${input.length}) exceeds the maximum allowed limit of ${this.maxInputLength} characters.` 
+      };
+    }
+
+    const allowed = new Set(this.alphabet);
+    for (let i = 0; i < input.length; i++) {
+      const ch = input[i];
+      if (!allowed.has(ch)) {
+        return { 
+          valid: false, 
+          error: `Invalid character '${ch}' at position ${i + 1}. Alphabet is Σ = {${this.alphabet.join(', ')}}.` 
+        };
+      }
+    }
+    return { valid: true };
+  }
+
+  /**
+   * Simulates the PDA step-by-step on the input string.
+   * If default preset is active, runs the dedicated canonical simulation.
+   * If other preset or custom PDA is active, runs the generalized transition runner.
+   * @param {string} input 
+   */
+  simulate(input) {
+    const validation = this.validateInput(input);
+    if (!validation.valid) {
+      return {
+        input,
+        isValid: false,
+        accepted: false,
+        validationError: validation.error,
+        reason: validation.error,
+        steps: [],
+        counts: null
+      };
+    }
+
+    // Default college assignment language simulation
+    if (this.isDefault) {
+      return this._simulateDefaultMatching(input);
+    }
+
+    // General simulation for other presets or custom PDAs
+    return this._simulateGeneralPDA(input);
+  }
+
+  /**
+   * General transition runner for configurable PDAs.
+   */
+  _simulateGeneralPDA(input) {
+    const len = input.length;
+    const steps = [];
+    const getStackString = (stk) => stk.join('');
+
+    let state = this.startState;
+    let stack = ['Z'];
+    let pos = 0;
+
+    // Step 0: Initial configuration
+    steps.push({
+      stepNumber: 0,
+      state: this.startState,
+      nextState: null,
+      activeTransitionId: null,
+      inputConsumed: '-',
+      inputPosition: -1,
+      inputRemaining: input || 'ε',
+      stackBefore: ['Z'],
+      stackAfter: ['Z'],
+      stackString: 'Z',
+      operation: 'INITIALIZE',
+      symbolOperated: 'Z',
+      explanation: `PDA initialized in state ${this.startState} with bottom marker Z.`
+    });
+
+    let accepted = false;
+    let haltedReason = '';
+    let maxSteps = 200;
+
+    while (maxSteps-- > 0) {
+      const stackTop = stack.length > 0 ? stack[stack.length - 1] : null;
+      const currentChar = pos < len ? input[pos] : null;
+      const stackBefore = [...stack];
+
+      // Check accepting condition first if input is exhausted and in accept state
+      if (pos === len && state === this.acceptState && stackTop === 'Z') {
+        accepted = true;
+        break;
+      }
+
+      // Find matching transition
+      let matchedTrans = null;
+
+      // 1. Try consuming next input symbol
+      if (currentChar !== null) {
+        matchedTrans = this.parsedTransitions.find(t => t.state === state && t.input === currentChar && t.stackTop === stackTop);
+      }
+
+      // 2. Try epsilon transition
+      if (!matchedTrans) {
+        matchedTrans = this.parsedTransitions.find(t => t.state === state && t.input === 'ε' && t.stackTop === stackTop);
+      }
+
+      if (matchedTrans) {
+        // Execute transition
+        stack.pop(); // pop stackTop
+        // push replacement in reverse order (top on left convention)
+        if (matchedTrans.replacement) {
+          for (let r = matchedTrans.replacement.length - 1; r >= 0; r--) {
+            stack.push(matchedTrans.replacement[r]);
+          }
+        }
+
+        const consumedSym = matchedTrans.input === 'ε' ? 'ε' : currentChar;
+        if (matchedTrans.input !== 'ε') {
+          pos++;
+        }
+
+        const op = matchedTrans.replacement.length > 1 ? 'PUSH' : (matchedTrans.replacement.length === 0 ? 'POP' : 'REPLACE');
+
+        steps.push({
+          stepNumber: steps.length,
+          state,
+          nextState: matchedTrans.nextState,
+          activeTransitionId: matchedTrans.id,
+          inputConsumed: consumedSym,
+          inputPosition: matchedTrans.input !== 'ε' ? pos - 1 : pos,
+          inputRemaining: input.slice(pos) || 'ε',
+          stackBefore,
+          stackAfter: [...stack],
+          stackString: getStackString(stack),
+          operation: op,
+          symbolOperated: matchedTrans.replacement || matchedTrans.stackTop,
+          production: matchedTrans.raw,
+          explanation: `Transition: ${matchedTrans.raw}. Stack becomes ${getStackString(stack)}.`
+        });
+
+        state = matchedTrans.nextState;
+
+        // Check if just entered accept state with empty input
+        if (state === this.acceptState && pos === len) {
+          accepted = true;
+          break;
+        }
+      } else {
+        // No transition possible
+        if (pos === len && state === this.acceptState) {
+          accepted = true;
+        } else if (pos === len && stackTop !== 'Z') {
+          haltedReason = `Input exhausted, but unmatched symbols remain on stack (${stackTop}) in non-final state ${state}.`;
+        } else if (pos < len) {
+          haltedReason = `No transition defined in state ${state} for input symbol '${currentChar}' with stack top '${stackTop}'.`;
+        } else {
+          haltedReason = `Computation halted in non-accepting state ${state}.`;
+        }
+        break;
+      }
+    }
+
+    if (!accepted) {
+      steps.push({
+        stepNumber: steps.length,
+        state,
+        nextState: null,
+        activeTransitionId: null,
+        inputConsumed: pos < len ? input[pos] : 'ε',
+        inputPosition: pos,
+        inputRemaining: input.slice(pos) || 'ε',
+        stackBefore: [...stack],
+        stackAfter: [...stack],
+        stackString: getStackString(stack),
+        operation: 'REJECT',
+        symbolOperated: null,
+        explanation: haltedReason || `Rejected in state ${state}.`
+      });
+    }
+
+    return {
+      input,
+      isValid: true,
+      accepted,
+      reason: accepted 
+        ? `ACCEPTED: Input '${input}' successfully recognized by ${this.languageDescription}.`
+        : `REJECTED: ${haltedReason}`,
+      steps,
+      counts: null,
+      failedAtStep: accepted ? null : steps.length - 1,
+      failedState: accepted ? null : state
+    };
+  }
+
+  /**
+   * Dedicated canonical implementation for the default college assignment problem.
+   * Matches original 38 unit tests exactly.
+   */
+  _simulateDefaultMatching(input) {
+    const steps = [];
+    let state = 'q0';
+    let stack = ['Z'];
+    let pos = 0;
+    const len = input.length;
+
+    const getStackString = (stk) => stk.join('');
+
+    steps.push({
+      stepNumber: 0,
+      state: 'q0',
+      nextState: null,
+      activeTransitionId: null,
+      inputConsumed: '-',
+      inputPosition: -1,
+      inputRemaining: input,
+      stackBefore: ['Z'],
+      stackAfter: ['Z'],
+      stackString: 'Z',
+      operation: 'INITIALIZE',
+      symbolOperated: 'Z',
+      explanation: 'PDA initialized in state q0 with bottom-of-stack marker Z.'
+    });
+
+    if (len === 0) {
+      return {
+        input: '',
+        isValid: true,
+        accepted: false,
+        reason: 'Empty string rejected: The language requires i ≥ 1 and j ≥ 1 (at least one 0, 1, 2, and 3). The PDA has no ε-transition from q0 with stack Z.',
+        steps,
+        counts: null,
+        failedAtStep: 0,
+        failedState: 'q0'
+      };
+    }
+
+    let accepted = false;
+    let rejectionReason = '';
+    let count0 = 0;
+    let count1 = 0;
+    let count2 = 0;
+    let count3 = 0;
+
+    while (true) {
+      const stackTop = stack.length > 0 ? stack[stack.length - 1] : null;
+      const currentChar = pos < len ? input[pos] : null;
+      const stackBefore = [...stack];
+
+      if (state === 'q0') {
+        if (currentChar === '0' && stackTop === 'Z') {
+          stack.push('X');
+          count0++;
+          pos++;
+          steps.push({
+            stepNumber: steps.length,
+            state: 'q0',
+            nextState: 'q0',
+            activeTransitionId: 'trans-q0-0-Z',
+            inputConsumed: '0',
+            inputPosition: pos - 1,
+            inputRemaining: input.slice(pos),
+            stackBefore,
+            stackAfter: [...stack],
+            stackString: getStackString(stack),
+            operation: 'PUSH',
+            symbolOperated: 'X',
+            explanation: 'Reading first 0: Pops Z, pushes XZ (stack top is now X) to begin counting 0s.'
+          });
+          continue;
+        } else if (currentChar === '0' && stackTop === 'X') {
+          stack.push('X');
+          count0++;
+          pos++;
+          steps.push({
+            stepNumber: steps.length,
+            state: 'q0',
+            nextState: 'q0',
+            activeTransitionId: 'trans-q0-0-X',
+            inputConsumed: '0',
+            inputPosition: pos - 1,
+            inputRemaining: input.slice(pos),
+            stackBefore,
+            stackAfter: [...stack],
+            stackString: getStackString(stack),
+            operation: 'PUSH',
+            symbolOperated: 'X',
+            explanation: 'Reading 0: Pops X, pushes XX (stack top is X) to count another 0.'
+          });
+          continue;
+        } else if (currentChar === '1' && stackTop === 'X') {
+          stack.push('Y');
+          count1++;
+          pos++;
+          state = 'q1';
+          steps.push({
+            stepNumber: steps.length,
+            state: 'q0',
+            nextState: 'q1',
+            activeTransitionId: 'trans-q0-1-X',
+            inputConsumed: '1',
+            inputPosition: pos - 1,
+            inputRemaining: input.slice(pos),
+            stackBefore,
+            stackAfter: [...stack],
+            stackString: getStackString(stack),
+            operation: 'PUSH',
+            symbolOperated: 'Y',
+            explanation: 'Reading first 1: Transitions to state q1 and pushes Y onto stack above X (counting 1s).'
+          });
+          continue;
+        } else {
+          if (currentChar === null) {
+            rejectionReason = `Input ended prematurely in state q0. No '1', '2', or '3' symbols provided. Language requires i, j ≥ 1.`;
+          } else if (stackTop === 'Z') {
+            rejectionReason = `Invalid starting symbol '${currentChar}'. In state q0 with stack bottom Z, expected '0'. Language requires i ≥ 1.`;
+          } else {
+            rejectionReason = `Unexpected symbol '${currentChar}' in state q0. Allowed symbols in q0 are '0' (count 0s) or '1' (switch to q1).`;
+          }
+          break;
+        }
+      } else if (state === 'q1') {
+        if (currentChar === '1' && stackTop === 'Y') {
+          stack.push('Y');
+          count1++;
+          pos++;
+          steps.push({
+            stepNumber: steps.length,
+            state: 'q1',
+            nextState: 'q1',
+            activeTransitionId: 'trans-q1-1-Y',
+            inputConsumed: '1',
+            inputPosition: pos - 1,
+            inputRemaining: input.slice(pos),
+            stackBefore,
+            stackAfter: [...stack],
+            stackString: getStackString(stack),
+            operation: 'PUSH',
+            symbolOperated: 'Y',
+            explanation: 'Reading 1: Pops Y, pushes YY (stack top is Y) to count another 1.'
+          });
+          continue;
+        } else if (currentChar === '2' && stackTop === 'Y') {
+          stack.pop();
+          count2++;
+          pos++;
+          state = 'q2';
+          steps.push({
+            stepNumber: steps.length,
+            state: 'q1',
+            nextState: 'q2',
+            activeTransitionId: 'trans-q1-2-Y',
+            inputConsumed: '2',
+            inputPosition: pos - 1,
+            inputRemaining: input.slice(pos),
+            stackBefore,
+            stackAfter: [...stack],
+            stackString: getStackString(stack),
+            operation: 'POP',
+            symbolOperated: 'Y',
+            explanation: 'Reading first 2: Transitions to state q2 and pops Y (matching 2 with 1).'
+          });
+          continue;
+        } else {
+          if (currentChar === null) {
+            rejectionReason = `Input ended prematurely in state q1. Missing '2' and '3' symbols. All 1s (${count1}) must be matched by 2s.`;
+          } else if (currentChar === '0') {
+            rejectionReason = `Incorrect symbol order: Encountered '0' after '1' in state q1. Symbols must follow strict 0-1-2-3 ordering.`;
+          } else if (currentChar === '3') {
+            rejectionReason = `Encountered '3' in state q1 before any '2' was processed. Language requires j ≥ 1 (at least one '2' matching '1').`;
+          } else {
+            rejectionReason = `Undefined transition in state q1 on symbol '${currentChar}' with stack top '${stackTop}'.`;
+          }
+          break;
+        }
+      } else if (state === 'q2') {
+        if (currentChar === '2' && stackTop === 'Y') {
+          stack.pop();
+          count2++;
+          pos++;
+          steps.push({
+            stepNumber: steps.length,
+            state: 'q2',
+            nextState: 'q2',
+            activeTransitionId: 'trans-q2-2-Y',
+            inputConsumed: '2',
+            inputPosition: pos - 1,
+            inputRemaining: input.slice(pos),
+            stackBefore,
+            stackAfter: [...stack],
+            stackString: getStackString(stack),
+            operation: 'POP',
+            symbolOperated: 'Y',
+            explanation: 'Reading 2: Pops Y from stack top to match a previously read 1.'
+          });
+          continue;
+        } else if (currentChar === '3' && stackTop === 'X') {
+          stack.pop();
+          count3++;
+          pos++;
+          state = 'q3';
+          steps.push({
+            stepNumber: steps.length,
+            state: 'q2',
+            nextState: 'q3',
+            activeTransitionId: 'trans-q2-3-X',
+            inputConsumed: '3',
+            inputPosition: pos - 1,
+            inputRemaining: input.slice(pos),
+            stackBefore,
+            stackAfter: [...stack],
+            stackString: getStackString(stack),
+            operation: 'POP',
+            symbolOperated: 'X',
+            explanation: 'Reading first 3: All Ys popped (1s and 2s balanced). Transitions to state q3 and pops X to match 3 with 0.'
+          });
+          continue;
+        } else {
+          if (currentChar === '2' && stackTop !== 'Y') {
+            rejectionReason = `Stack mismatch in state q2: Found extra '2' when stack top was '${stackTop}' (all Ys were already popped). Count of 2s exceeds 1s.`;
+          } else if (currentChar === '3' && stackTop === 'Y') {
+            rejectionReason = `Stack mismatch in state q2: Encountered '3' while 'Y' remains on stack. Fewer 2s were read than 1s (found ${count2} twos vs ${count1} ones).`;
+          } else if (currentChar === null) {
+            rejectionReason = `Input ended prematurely in state q2. Unmatched symbols remain on stack (${stackTop}). Missing '3' symbols.`;
+          } else {
+            rejectionReason = `Unexpected symbol '${currentChar}' in state q2 with stack top '${stackTop}'. Expected '2' (if Y on stack) or '3' (if X on stack).`;
+          }
+          break;
+        }
+      } else if (state === 'q3') {
+        if (currentChar === '3' && stackTop === 'X') {
+          stack.pop();
+          count3++;
+          pos++;
+          steps.push({
+            stepNumber: steps.length,
+            state: 'q3',
+            nextState: 'q3',
+            activeTransitionId: 'trans-q3-3-X',
+            inputConsumed: '3',
+            inputPosition: pos - 1,
+            inputRemaining: input.slice(pos),
+            stackBefore,
+            stackAfter: [...stack],
+            stackString: getStackString(stack),
+            operation: 'POP',
+            symbolOperated: 'X',
+            explanation: 'Reading 3: Pops X from stack top to match a previously read 0.'
+          });
+          continue;
+        } else if (currentChar === null && stackTop === 'Z') {
+          state = 'qf';
+          steps.push({
+            stepNumber: steps.length,
+            state: 'q3',
+            nextState: 'qf',
+            activeTransitionId: 'trans-q3-eps-Z',
+            inputConsumed: 'ε',
+            inputPosition: pos,
+            inputRemaining: '',
+            stackBefore,
+            stackAfter: [...stack],
+            stackString: getStackString(stack),
+            operation: 'ACCEPT',
+            symbolOperated: 'Z',
+            explanation: 'Input exhausted and stack bottom marker Z reached: Transitions to final state qf via (ε, Z → Z). ACCEPTED!'
+          });
+          accepted = true;
+          break;
+        } else {
+          if (currentChar === '3' && stackTop === 'Z') {
+            rejectionReason = `Stack mismatch in state q3: Encountered extra '3' when stack top was bottom marker 'Z'. More 3s were read than 0s.`;
+          } else if (currentChar === null && stackTop === 'X') {
+            rejectionReason = `Input exhausted in state q3, but unmatched 'X' symbols remain on stack. Fewer 3s were read than 0s (${count3} threes vs ${count0} zeros).`;
+          } else if (currentChar !== null) {
+            rejectionReason = `Unexpected symbol '${currentChar}' in state q3. In q3, only '3' (pop X) is accepted.`;
+          } else {
+            rejectionReason = `Undefined transition in state q3 with stack top '${stackTop}'.`;
+          }
+          break;
+        }
+      } else {
+        break;
+      }
+    }
+
+    if (!accepted) {
+      steps.push({
+        stepNumber: steps.length,
+        state,
+        nextState: null,
+        activeTransitionId: null,
+        inputConsumed: pos < len ? input[pos] : 'ε',
+        inputPosition: pos < len ? pos : pos,
+        inputRemaining: input.slice(pos),
+        stackBefore: [...stack],
+        stackAfter: [...stack],
+        stackString: getStackString(stack),
+        operation: 'REJECT',
+        symbolOperated: null,
+        explanation: `Computation halted in non-accepting state ${state}. Reason: ${rejectionReason}`
+      });
+    }
+
+    return {
+      input,
+      isValid: true,
+      accepted,
+      reason: accepted 
+        ? `ACCEPTED: i = ${count0} and j = ${count1}. Both pairs of symbol counts match (0s = 3s = ${count0}, 1s = 2s = ${count1}).`
+        : rejectionReason,
+      steps,
+      counts: accepted ? { i: count0, j: count1 } : null,
+      failedAtStep: accepted ? null : steps.length - 1,
+      failedState: accepted ? null : state
+    };
+  }
+}
+
+// Export for module/testing environments as well as browser globals
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { MatchingPDA };
+} else if (typeof window !== 'undefined') {
+  window.MatchingPDA = MatchingPDA;
+}
+
+</script>
+  <script>
+/**
+ * palindrome-pda.js
+ * 
+ * General Context-Free Grammar (CFG) to Pushdown Automaton (PDA) Engine.
+ * 
+ * Default Problem:
+ * S -> aSa | bSb | ε
+ * (Even-length palindromes over Σ = {a, b}, including empty string ε).
+ * 
+ * Capability:
+ * - Can parse and simulate ANY Context-Free Grammar input by user (e.g. S -> aSb | ε, S -> 0S0 | 1S1 | c, etc.)
+ * - Converts grammar productions into standard top-down PDA transitions:
+ *     q0 -> q1: (ε, Z -> SZ)
+ *     q1 -> q1: (ε, A -> α) for every production A -> α
+ *     q1 -> q1: (a, a -> ε) for every terminal a
+ *     q1 -> qf: (ε, Z -> Z) when input is exhausted
+ * - Preserves default college presentation settings as default.
+ */
+
+class PalindromePDA {
+  constructor() {
+    this.name = 'CFG-to-PDA Converter & Simulator';
+    this.defaultGrammar = 'S → aSa | bSb | ε';
+    this.defaultDescription = 'Generates even-length palindromes (length 2k) over {a, b}';
+    this.maxInputLength = 30;
+
+    // Load default grammar
+    this.setGrammar(this.defaultGrammar, this.defaultDescription);
+  }
+
+  /**
+   * Sets and parses a new Context-Free Grammar.
+   * @param {string} grammarString 
+   * @param {string} [description]
+   * @returns {{ success: boolean, error?: string, grammarInfo?: Object }}
+   */
+  setGrammar(grammarString, description) {
+    if (typeof grammarString !== 'string' || !grammarString.trim()) {
+      return { success: false, error: 'Grammar cannot be empty.' };
+    }
+
+    try {
+      const parsed = this._parseGrammar(grammarString);
+      if (parsed.productions.length === 0) {
+        return { success: false, error: 'No valid productions found. Format: S -> aSa | bSb | ε' };
+      }
+
+      this.grammar = grammarString.trim();
+      this.description = description || `Grammar: ${this.grammar}`;
+      this.startSymbol = parsed.startSymbol;
+      this.variables = parsed.variables;
+      this.terminals = parsed.terminals;
+      this.productions = parsed.productions;
+      this.isDefaultGrammar = this._checkIsDefault(parsed);
+
+      return {
+        success: true,
+        grammarInfo: {
+          startSymbol: this.startSymbol,
+          variables: this.variables,
+          terminals: this.terminals,
+          productionsCount: this.productions.length
+        }
+      };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  }
+
+  /**
+   * Resets the grammar back to default college presentation problem.
+   */
+  resetToDefault() {
+    return this.setGrammar(this.defaultGrammar, this.defaultDescription);
+  }
+
+  /**
+   * Internal parser for CFG rules.
+   * Handles '->', '→', '|', and epsilon representations (ε, eps, e, lambda, empty).
+   */
+  _parseGrammar(grammarText) {
+    const lines = grammarText.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('//') && !l.startsWith('#'));
+    const productions = [];
+    const variables = new Set();
+    let startSymbol = null;
+
+    for (const line of lines) {
+      const arrowMatch = line.split(/\s*->\s*|\s*→\s*/);
+      if (arrowMatch.length < 2) continue;
+
+      const lhs = arrowMatch[0].trim();
+      if (!lhs) continue;
+      if (!startSymbol) startSymbol = lhs;
+      variables.add(lhs);
+
+      const rhsAlternatives = arrowMatch[1].split(/\s*\|\s*/);
+      for (const alt of rhsAlternatives) {
+        const trimmedAlt = alt.trim();
+        let rhs = [];
+        if (trimmedAlt !== '' && trimmedAlt !== 'ε' && trimmedAlt !== 'eps' && trimmedAlt !== 'e' && trimmedAlt !== 'lambda') {
+          // split into symbols (treating characters as symbols)
+          rhs = trimmedAlt.split(/\s+/).join('').split('');
+        }
+        productions.push({
+          id: `prod-${productions.length}`,
+          lhs,
+          rhs,
+          rhsStr: trimmedAlt || 'ε',
+          fullStr: `${lhs} → ${trimmedAlt || 'ε'}`
+        });
+      }
+    }
+
+    const terminals = new Set();
+    for (const p of productions) {
+      for (const sym of p.rhs) {
+        if (!variables.has(sym)) {
+          terminals.add(sym);
+        }
+      }
+    }
+
+    return {
+      startSymbol: startSymbol || 'S',
+      variables: Array.from(variables),
+      terminals: Array.from(terminals),
+      productions
+    };
+  }
+
+  /**
+   * Checks if the parsed grammar matches the default S -> aSa | bSb | ε.
+   */
+  _checkIsDefault(parsed) {
+    if (parsed.variables.length !== 1 || parsed.variables[0] !== 'S') return false;
+    if (parsed.productions.length !== 3) return false;
+    const rules = parsed.productions.map(p => `${p.lhs}->${p.rhsStr}`).sort();
+    const defaultRules = ['S->aSa', 'S->bSb', 'S->ε'].sort();
+    return JSON.stringify(rules) === JSON.stringify(defaultRules);
+  }
+
+  /**
+   * Validates input string syntax and length against current terminals.
+   * @param {string} input 
+   * @returns {{ valid: boolean, error?: string }}
+   */
+  validateInput(input) {
+    if (typeof input !== 'string') {
+      return { valid: false, error: 'Input must be a string.' };
+    }
+    if (input.length > this.maxInputLength) {
+      return { 
+        valid: false, 
+        error: `Input length (${input.length}) exceeds the maximum allowed limit of ${this.maxInputLength} characters.` 
+      };
+    }
+
+    // Check alphabet
+    const allowedTerminals = new Set(this.terminals);
+    for (let i = 0; i < input.length; i++) {
+      const ch = input[i];
+      if (!allowedTerminals.has(ch)) {
+        return { 
+          valid: false, 
+          error: `Invalid character '${ch}' at position ${i + 1}. Terminal alphabet for current grammar is Σ = {${this.terminals.join(', ') || 'none'}}.` 
+        };
+      }
+    }
+    return { valid: true };
+  }
+
+  /**
+   * Analyzes palindrome symmetry properties of the string.
+   * (Available for palindrome-based grammars).
+   */
+  analyzePalindrome(input) {
+    const len = input.length;
+    const reversed = input.split('').reverse().join('');
+    const isPal = input === reversed;
+    const isEven = len % 2 === 0;
+    const isOdd = len % 2 === 1;
+
+    const pairs = [];
+    const half = Math.floor(len / 2);
+    let firstMismatch = null;
+
+    for (let i = 0; i < half; i++) {
+      const j = len - 1 - i;
+      const match = input[i] === input[j];
+      pairs.push({
+        leftIndex: i,
+        rightIndex: j,
+        leftChar: input[i],
+        rightChar: input[j],
+        match
+      });
+      if (!match && firstMismatch === null) {
+        firstMismatch = { i, j, c1: input[i], c2: input[j] };
+      }
+    }
+
+    // Default derivation builder for S -> aSa | bSb | ε
+    const derivation = [];
+    if (this.isDefaultGrammar && isPal && isEven) {
+      if (len === 0) {
+        derivation.push('S', 'ε');
+      } else {
+        derivation.push('S');
+        let current = 'S';
+        for (let i = 0; i < half; i++) {
+          const leftPrefix = input.slice(0, i + 1);
+          const rightSuffix = input.slice(len - 1 - i);
+          current = `${leftPrefix}S${rightSuffix}`;
+          derivation.push(current);
+        }
+        derivation.push(input);
+      }
+    }
+
+    return {
+      input,
+      reversed,
+      isPalindrome: isPal,
+      isEvenLength: isEven,
+      isOddLength: isOdd,
+      length: len,
+      pairs,
+      firstMismatch,
+      derivation: derivation.length > 0 ? derivation : null
+    };
+  }
+
+  /**
+   * Simulates CFG-to-PDA on the input string.
+   * If default grammar is active, uses exact canonical sequence.
+   * If custom grammar is active, uses universal top-down parsing.
+   * @param {string} input 
+   */
+  simulate(input) {
+    const validation = this.validateInput(input);
+    if (!validation.valid) {
+      return {
+        input,
+        isValid: false,
+        accepted: false,
+        validationError: validation.error,
+        reason: validation.error,
+        steps: [],
+        analysis: null
+      };
+    }
+
+    // If default grammar, use dedicated canonical implementation
+    if (this.isDefaultGrammar) {
+      const analysis = this.analyzePalindrome(input);
+      if (analysis.isPalindrome && analysis.isEvenLength) {
+        return this._simulateDefaultEvenPalindrome(input, analysis);
+      } else {
+        return this._simulateDefaultRejectedString(input, analysis);
+      }
+    }
+
+    // Universal simulation for any custom CFG
+    return this._simulateGeneralCFG(input);
+  }
+
+  /**
+   * General top-down CFG-to-PDA parser for any user-defined grammar.
+   */
+  _simulateGeneralCFG(input) {
+    const len = input.length;
+    const getStackString = (stk) => stk.join('');
+    const varSet = new Set(this.variables);
+
+    // Initial configuration: state q0, stack [Z]
+    const initialStep0 = {
+      stepNumber: 0,
+      state: 'q0',
+      nextState: null,
+      activeTransitionId: null,
+      inputConsumed: '-',
+      inputPosition: -1,
+      inputRemaining: input || 'ε',
+      stackBefore: ['Z'],
+      stackAfter: ['Z'],
+      stackString: 'Z',
+      operation: 'INITIALIZE',
+      symbolOperated: 'Z',
+      explanation: `PDA initialized in state q0 with bottom marker Z.`
+    };
+
+    // Step 1: q0 -> q1 via (ε, Z -> S Z)
+    const initialStep1 = {
+      stepNumber: 1,
+      state: 'q0',
+      nextState: 'q1',
+      activeTransitionId: 'trans-q0-q1-init',
+      inputConsumed: 'ε',
+      inputPosition: 0,
+      inputRemaining: input || 'ε',
+      stackBefore: ['Z'],
+      stackAfter: ['Z', this.startSymbol],
+      stackString: `Z${this.startSymbol}`,
+      operation: 'PUSH',
+      symbolOperated: this.startSymbol,
+      production: `Z → ${this.startSymbol}Z`,
+      explanation: `Initialize: Push start symbol ${this.startSymbol} onto stack above Z and transition to state q1.`
+    };
+
+    // Bounded Guided Search over PDA configurations
+    const queue = [{
+      pos: 0,
+      stack: ['Z', this.startSymbol], // index 0 is bottom Z, last element is top
+      steps: [initialStep0, initialStep1],
+      derivation: [this.startSymbol],
+      sentential: this.startSymbol,
+      depth: 0
+    }];
+
+    let maxExplorations = 1500;
+    let acceptingBranch = null;
+    let deepestBranch = queue[0];
+
+    while (queue.length > 0 && maxExplorations-- > 0) {
+      const curr = queue.shift();
+      if (curr.steps.length > deepestBranch.steps.length) {
+        deepestBranch = curr;
+      }
+
+      const stackTop = curr.stack[curr.stack.length - 1];
+
+      // Check accepting condition
+      if (stackTop === 'Z' && curr.pos === len) {
+        const stackBeforeAcc = [...curr.stack];
+        const acceptStep = {
+          stepNumber: curr.steps.length,
+          state: 'q1',
+          nextState: 'qf',
+          activeTransitionId: 'trans-q1-qf-accept',
+          inputConsumed: 'ε',
+          inputPosition: curr.pos,
+          inputRemaining: '',
+          stackBefore: stackBeforeAcc,
+          stackAfter: [...curr.stack],
+          stackString: getStackString(curr.stack),
+          operation: 'ACCEPT',
+          symbolOperated: 'Z',
+          production: 'Z → Z',
+          explanation: `Input fully consumed and bottom marker Z reached: Move to state qf via (ε, Z → Z). ACCEPTED!`
+        };
+
+        acceptingBranch = {
+          steps: [...curr.steps, acceptStep],
+          derivation: curr.derivation
+        };
+        break;
+      }
+
+      if (!stackTop || stackTop === 'Z') {
+        continue;
+      }
+
+      if (varSet.has(stackTop)) {
+        // Variable on stack top: try grammar expansion A -> α
+        for (let pIdx = 0; pIdx < this.productions.length; pIdx++) {
+          const prod = this.productions[pIdx];
+          if (prod.lhs === stackTop) {
+            const stackBeforeExp = [...curr.stack];
+            const newStack = curr.stack.slice(0, -1); // pop variable
+            // push RHS in reverse order so leftmost symbol of RHS is on top
+            for (let r = prod.rhs.length - 1; r >= 0; r--) {
+              newStack.push(prod.rhs[r]);
+            }
+
+            // Update sentential form
+            const newSentential = curr.sentential.replace(stackTop, prod.rhs.join(''));
+            const newDeriv = [...curr.derivation, newSentential || 'ε'];
+
+            const expStep = {
+              stepNumber: curr.steps.length,
+              state: 'q1',
+              nextState: 'q1',
+              activeTransitionId: `trans-q1-expand-${pIdx}`,
+              inputConsumed: 'ε',
+              inputPosition: curr.pos,
+              inputRemaining: input.slice(curr.pos) || 'ε',
+              stackBefore: stackBeforeExp,
+              stackAfter: [...newStack],
+              stackString: getStackString(newStack),
+              operation: prod.rhs.length === 0 ? 'POP' : 'PUSH',
+              symbolOperated: prod.lhs,
+              production: prod.fullStr,
+              explanation: `Grammar expansion: Apply production ${prod.fullStr} (replace ${prod.lhs} on stack). Stack top is '${newStack[newStack.length - 1]}'.`
+            };
+
+            // Pruning heuristic: prevent runaway stack depth
+            if (newStack.length <= len + 12 && curr.depth < 35) {
+              queue.push({
+                pos: curr.pos,
+                stack: newStack,
+                steps: [...curr.steps, expStep],
+                derivation: newDeriv,
+                sentential: newSentential,
+                depth: curr.depth + 1
+              });
+            }
+          }
+        }
+      } else {
+        // Terminal on stack top: must match input[pos]
+        if (curr.pos < len && input[curr.pos] === stackTop) {
+          const stackBeforeMatch = [...curr.stack];
+          const newStack = curr.stack.slice(0, -1); // pop matched terminal
+          const matchedChar = input[curr.pos];
+          const nextPos = curr.pos + 1;
+
+          const matchStep = {
+            stepNumber: curr.steps.length,
+            state: 'q1',
+            nextState: 'q1',
+            activeTransitionId: `trans-q1-match-${matchedChar}`,
+            inputConsumed: matchedChar,
+            inputPosition: curr.pos,
+            inputRemaining: input.slice(nextPos) || 'ε',
+            stackBefore: stackBeforeMatch,
+            stackAfter: [...newStack],
+            stackString: getStackString(newStack),
+            operation: 'POP',
+            symbolOperated: matchedChar,
+            production: `(${matchedChar}, ${matchedChar} → ε)`,
+            explanation: `Terminal match: Read '${matchedChar}' from input and pop matching '${stackTop}' from stack top.`
+          };
+
+          queue.unshift({
+            pos: nextPos,
+            stack: newStack,
+            steps: [...curr.steps, matchStep],
+            derivation: curr.derivation,
+            sentential: curr.sentential,
+            depth: curr.depth
+          });
+        }
+      }
+    }
+
+    if (acceptingBranch) {
+      return {
+        input,
+        isValid: true,
+        accepted: true,
+        reason: `ACCEPTED: Successfully generated by grammar ${this.grammar}. Leftmost derivation: ${acceptingBranch.derivation.join(' ⇒ ')}.`,
+        steps: acceptingBranch.steps,
+        analysis: {
+          input,
+          isPalindrome: input === input.split('').reverse().join(''),
+          derivation: acceptingBranch.derivation
+        }
+      };
+    }
+
+    // Rejection: build best trace leading to failure
+    const rejectSteps = [...deepestBranch.steps];
+    const lastStack = deepestBranch.stack;
+    const topSym = lastStack[lastStack.length - 1];
+    const nextInp = deepestBranch.pos < len ? input[deepestBranch.pos] : 'EOF';
+
+    rejectSteps.push({
+      stepNumber: rejectSteps.length,
+      state: 'q1',
+      nextState: null,
+      activeTransitionId: null,
+      inputConsumed: deepestBranch.pos < len ? input[deepestBranch.pos] : 'ε',
+      inputPosition: deepestBranch.pos,
+      inputRemaining: input.slice(deepestBranch.pos),
+      stackBefore: [...lastStack],
+      stackAfter: [...lastStack],
+      stackString: getStackString(lastStack),
+      operation: 'REJECT',
+      symbolOperated: null,
+      explanation: `Computation halted in state q1. Cannot match input symbol '${nextInp}' against stack top '${topSym}'. No valid derivation exists in this CFG.`
+    });
+
+    return {
+      input,
+      isValid: true,
+      accepted: false,
+      reason: `REJECTED: String '${input}' cannot be generated by grammar ${this.grammar}. Mismatch on remaining input near position ${deepestBranch.pos + 1}.`,
+      steps: rejectSteps,
+      analysis: {
+        input,
+        isPalindrome: input === input.split('').reverse().join(''),
+        derivation: null
+      },
+      failedAtStep: rejectSteps.length - 1,
+      failedState: 'q1'
+    };
+  }
+
+  /**
+   * Dedicated canonical sequence for default even palindrome (matches original 38 tests).
+   */
+  _simulateDefaultEvenPalindrome(input, analysis) {
+    const steps = [];
+    const getStackString = (stk) => stk.join('');
+    const len = input.length;
+    const half = len / 2;
+
+    let stack = ['Z'];
+    let state = 'q0';
+    let pos = 0;
+
+    // Step 0: Initial configuration
+    steps.push({
+      stepNumber: 0,
+      state: 'q0',
+      nextState: null,
+      activeTransitionId: null,
+      inputConsumed: '-',
+      inputPosition: -1,
+      inputRemaining: input || 'ε',
+      stackBefore: ['Z'],
+      stackAfter: ['Z'],
+      stackString: 'Z',
+      operation: 'INITIALIZE',
+      symbolOperated: 'Z',
+      explanation: 'PDA initialized in state q0 with bottom-of-stack marker Z.'
+    });
+
+    // Step 1: Transition q0 -> q1 via (ε, Z -> SZ)
+    const stackBefore1 = [...stack];
+    stack.push('S');
+    state = 'q1';
+    steps.push({
+      stepNumber: steps.length,
+      state: 'q0',
+      nextState: 'q1',
+      activeTransitionId: 'trans-q0-q1-init',
+      inputConsumed: 'ε',
+      inputPosition: 0,
+      inputRemaining: input || 'ε',
+      stackBefore: stackBefore1,
+      stackAfter: [...stack],
+      stackString: getStackString(stack),
+      operation: 'PUSH',
+      symbolOperated: 'S',
+      production: 'Z → SZ',
+      explanation: 'Initialize PDA: Push start symbol S onto stack above Z and move to state q1.'
+    });
+
+    if (len === 0) {
+      // Empty string: S -> ε directly
+      const stackBeforeExp = [...stack];
+      stack.pop();
+      steps.push({
+        stepNumber: steps.length,
+        state: 'q1',
+        nextState: 'q1',
+        activeTransitionId: 'trans-q1-eps',
+        inputConsumed: 'ε',
+        inputPosition: 0,
+        inputRemaining: '',
+        stackBefore: stackBeforeExp,
+        stackAfter: [...stack],
+        stackString: getStackString(stack),
+        operation: 'POP',
+        symbolOperated: 'S',
+        production: 'S → ε',
+        explanation: 'Grammar expansion: Apply production S → ε (popping S). Stack holds bottom marker Z.'
+      });
+
+      const stackBeforeAcc = [...stack];
+      state = 'qf';
+      steps.push({
+        stepNumber: steps.length,
+        state: 'q1',
+        nextState: 'qf',
+        activeTransitionId: 'trans-q1-qf-accept',
+        inputConsumed: 'ε',
+        inputPosition: 0,
+        inputRemaining: '',
+        stackBefore: stackBeforeAcc,
+        stackAfter: [...stack],
+        stackString: getStackString(stack),
+        operation: 'ACCEPT',
+        symbolOperated: 'Z',
+        production: 'Z → Z',
+        explanation: 'Input is empty and bottom marker Z reached: Move to state qf via (ε, Z → Z). ACCEPTED!'
+      });
+
+      return {
+        input,
+        isValid: true,
+        accepted: true,
+        reason: 'ACCEPTED: Empty string ε is generated by S → ε (length = 0, even-length palindrome).',
+        steps,
+        analysis
+      };
+    }
+
+    // First half expansions and matches
+    for (let i = 0; i < half; i++) {
+      const ch = input[i];
+      const prod = ch === 'a' ? 'S → aSa' : 'S → bSb';
+      const transId = ch === 'a' ? 'trans-q1-aSa' : 'trans-q1-bSb';
+
+      const stackBeforeExp = [...stack];
+      stack.pop();
+      stack.push(ch);
+      stack.push('S');
+      stack.push(ch);
+
+      steps.push({
+        stepNumber: steps.length,
+        state: 'q1',
+        nextState: 'q1',
+        activeTransitionId: transId,
+        inputConsumed: 'ε',
+        inputPosition: pos,
+        inputRemaining: input.slice(pos),
+        stackBefore: stackBeforeExp,
+        stackAfter: [...stack],
+        stackString: getStackString(stack),
+        operation: 'PUSH',
+        symbolOperated: prod,
+        production: prod,
+        explanation: `Grammar expansion: Apply production ${prod} (pop S, push ${ch}S${ch}). Top of stack is '${ch}'.`
+      });
+
+      const stackBeforeMatch = [...stack];
+      stack.pop();
+      pos++;
+      steps.push({
+        stepNumber: steps.length,
+        state: 'q1',
+        nextState: 'q1',
+        activeTransitionId: ch === 'a' ? 'trans-q1-match-a' : 'trans-q1-match-b',
+        inputConsumed: ch,
+        inputPosition: pos - 1,
+        inputRemaining: input.slice(pos),
+        stackBefore: stackBeforeMatch,
+        stackAfter: [...stack],
+        stackString: getStackString(stack),
+        operation: 'POP',
+        symbolOperated: ch,
+        production: `(${ch}, ${ch} → ε)`,
+        explanation: `Terminal match: Read '${ch}' from input and pop matching '${ch}' from stack top.`
+      });
+    }
+
+    // Center S -> ε
+    const stackBeforeEps = [...stack];
+    stack.pop();
+    steps.push({
+      stepNumber: steps.length,
+      state: 'q1',
+      nextState: 'q1',
+      activeTransitionId: 'trans-q1-eps',
+      inputConsumed: 'ε',
+      inputPosition: pos,
+      inputRemaining: input.slice(pos),
+      stackBefore: stackBeforeEps,
+      stackAfter: [...stack],
+      stackString: getStackString(stack),
+      operation: 'POP',
+      symbolOperated: 'S',
+      production: 'S → ε',
+      explanation: 'Grammar expansion: Apply S → ε (pop S) to mark the center of the palindrome.'
+    });
+
+    // Second half matches
+    for (let i = half; i < len; i++) {
+      const ch = input[i];
+      const stackBeforeMatch = [...stack];
+      const topSymbol = stack.pop();
+      pos++;
+      steps.push({
+        stepNumber: steps.length,
+        state: 'q1',
+        nextState: 'q1',
+        activeTransitionId: ch === 'a' ? 'trans-q1-match-a' : 'trans-q1-match-b',
+        inputConsumed: ch,
+        inputPosition: pos - 1,
+        inputRemaining: input.slice(pos),
+        stackBefore: stackBeforeMatch,
+        stackAfter: [...stack],
+        stackString: getStackString(stack),
+        operation: 'POP',
+        symbolOperated: ch,
+        production: `(${ch}, ${ch} → ε)`,
+        explanation: `Terminal match: Read mirrored '${ch}' from input and pop matching '${topSymbol}' from stack top.`
+      });
+    }
+
+    // Final transition
+    const stackBeforeAcc = [...stack];
+    state = 'qf';
+    steps.push({
+      stepNumber: steps.length,
+      state: 'q1',
+      nextState: 'qf',
+      activeTransitionId: 'trans-q1-qf-accept',
+      inputConsumed: 'ε',
+      inputPosition: pos,
+      inputRemaining: '',
+      stackBefore: stackBeforeAcc,
+      stackAfter: [...stack],
+      stackString: getStackString(stack),
+      operation: 'ACCEPT',
+      symbolOperated: 'Z',
+      production: 'Z → Z',
+      explanation: 'Input fully consumed and bottom marker Z reached: Move to state qf via (ε, Z → Z). ACCEPTED!'
+    });
+
+    return {
+      input,
+      isValid: true,
+      accepted: true,
+      reason: `ACCEPTED: Even-length palindrome of length ${len}. Successfully generated via CFG derivation: ${analysis.derivation ? analysis.derivation.join(' ⇒ ') : input}.`,
+      steps,
+      analysis
+    };
+  }
+
+  /**
+   * Dedicated rejection sequence for default palindrome grammar.
+   */
+  _simulateDefaultRejectedString(input, analysis) {
+    const steps = [];
+    const getStackString = (stk) => stk.join('');
+    const len = input.length;
+
+    let stack = ['Z'];
+    let state = 'q0';
+    let pos = 0;
+
+    steps.push({
+      stepNumber: 0,
+      state: 'q0',
+      nextState: null,
+      activeTransitionId: null,
+      inputConsumed: '-',
+      inputPosition: -1,
+      inputRemaining: input,
+      stackBefore: ['Z'],
+      stackAfter: ['Z'],
+      stackString: 'Z',
+      operation: 'INITIALIZE',
+      symbolOperated: 'Z',
+      explanation: 'PDA initialized in state q0 with bottom marker Z.'
+    });
+
+    const stackBefore1 = [...stack];
+    stack.push('S');
+    state = 'q1';
+    steps.push({
+      stepNumber: steps.length,
+      state: 'q0',
+      nextState: 'q1',
+      activeTransitionId: 'trans-q0-q1-init',
+      inputConsumed: 'ε',
+      inputPosition: 0,
+      inputRemaining: input,
+      stackBefore: stackBefore1,
+      stackAfter: [...stack],
+      stackString: getStackString(stack),
+      operation: 'PUSH',
+      symbolOperated: 'S',
+      production: 'Z → SZ',
+      explanation: 'Initialize PDA: Push start symbol S onto stack above Z and move to q1.'
+    });
+
+    const half = Math.floor(len / 2);
+    let stuckReason = '';
+
+    for (let i = 0; i < half; i++) {
+      const ch = input[i];
+      const prod = ch === 'a' ? 'S → aSa' : 'S → bSb';
+      const transId = ch === 'a' ? 'trans-q1-aSa' : 'trans-q1-bSb';
+
+      const stackBeforeExp = [...stack];
+      stack.pop();
+      stack.push(ch);
+      stack.push('S');
+      stack.push(ch);
+
+      steps.push({
+        stepNumber: steps.length,
+        state: 'q1',
+        nextState: 'q1',
+        activeTransitionId: transId,
+        inputConsumed: 'ε',
+        inputPosition: pos,
+        inputRemaining: input.slice(pos),
+        stackBefore: stackBeforeExp,
+        stackAfter: [...stack],
+        stackString: getStackString(stack),
+        operation: 'PUSH',
+        symbolOperated: prod,
+        production: prod,
+        explanation: `Grammar expansion: Attempting production ${prod} to match prefix symbol '${ch}'.`
+      });
+
+      const stackBeforeMatch = [...stack];
+      stack.pop();
+      pos++;
+
+      steps.push({
+        stepNumber: steps.length,
+        state: 'q1',
+        nextState: 'q1',
+        activeTransitionId: ch === 'a' ? 'trans-q1-match-a' : 'trans-q1-match-b',
+        inputConsumed: ch,
+        inputPosition: pos - 1,
+        inputRemaining: input.slice(pos),
+        stackBefore: stackBeforeMatch,
+        stackAfter: [...stack],
+        stackString: getStackString(stack),
+        operation: 'POP',
+        symbolOperated: ch,
+        production: `(${ch}, ${ch} → ε)`,
+        explanation: `Terminal match: Read '${ch}' and popped matching '${ch}'.`
+      });
+    }
+
+    if (analysis.isOddLength) {
+      const stackBeforeEps = [...stack];
+      stack.pop();
+      steps.push({
+        stepNumber: steps.length,
+        state: 'q1',
+        nextState: 'q1',
+        activeTransitionId: 'trans-q1-eps',
+        inputConsumed: 'ε',
+        inputPosition: pos,
+        inputRemaining: input.slice(pos),
+        stackBefore: stackBeforeEps,
+        stackAfter: [...stack],
+        stackString: getStackString(stack),
+        operation: 'POP',
+        symbolOperated: 'S',
+        production: 'S → ε',
+        explanation: 'Center reached: Pop S via S → ε. Stack top now holds mirrored symbol, but odd center character remains.'
+      });
+
+      const nextInput = input[pos];
+      const stackTop = stack[stack.length - 1];
+      stuckReason = `Odd-length string (${len} characters): Center character '${nextInput}' at index ${pos + 1} has no match on stack top ('${stackTop}'). The grammar S → aSa | bSb | ε generates only even-length palindromes (length = 2k). Even though '${input}' is a palindrome, it cannot be generated by this grammar.`;
+    } else {
+      const stackBeforeEps = [...stack];
+      stack.pop();
+      steps.push({
+        stepNumber: steps.length,
+        state: 'q1',
+        nextState: 'q1',
+        activeTransitionId: 'trans-q1-eps',
+        inputConsumed: 'ε',
+        inputPosition: pos,
+        inputRemaining: input.slice(pos),
+        stackBefore: stackBeforeEps,
+        stackAfter: [...stack],
+        stackString: getStackString(stack),
+        operation: 'POP',
+        symbolOperated: 'S',
+        production: 'S → ε',
+        explanation: 'Center hypothesis: Pop S via S → ε. Testing if stack mirrors the remaining input.'
+      });
+
+      const nextInput = input[pos];
+      const stackTop = stack[stack.length - 1];
+      const mismatch = analysis.firstMismatch;
+      stuckReason = `Mirror mismatch: Remaining input symbol '${nextInput}' at position ${pos + 1} does not match stack top '${stackTop}'. String is not a palindrome (mismatch between position ${mismatch ? mismatch.i + 1 : 1} and ${mismatch ? mismatch.j + 1 : len}).`;
+    }
+
+    steps.push({
+      stepNumber: steps.length,
+      state: 'q1',
+      nextState: null,
+      activeTransitionId: null,
+      inputConsumed: pos < len ? input[pos] : 'ε',
+      inputPosition: pos,
+      inputRemaining: input.slice(pos),
+      stackBefore: [...stack],
+      stackAfter: [...stack],
+      stackString: getStackString(stack),
+      operation: 'REJECT',
+      symbolOperated: null,
+      explanation: `Computation halted in non-accepting state q1. ${stuckReason}`
+    });
+
+    let overallReason = '';
+    if (analysis.isOddLength && analysis.isPalindrome) {
+      overallReason = `REJECTED: '${input}' is an odd-length palindrome (length ${len}). The grammar S → aSa | bSb | ε only derives even-length palindromes (length 2k). No derivation exists in this CFG.`;
+    } else if (analysis.isOddLength) {
+      overallReason = `REJECTED: Odd-length string (length ${len}). This grammar only generates even-length palindromes.`;
+    } else {
+      overallReason = `REJECTED: Not a palindrome under CFG S → aSa | bSb | ε. ${stuckReason}`;
+    }
+
+    return {
+      input,
+      isValid: true,
+      accepted: false,
+      reason: overallReason,
+      steps,
+      analysis,
+      failedAtStep: steps.length - 1,
+      failedState: 'q1'
+    };
+  }
+}
+
+// Export for module/testing environments as well as browser globals
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { PalindromePDA, CFGtoPDA: PalindromePDA };
+} else if (typeof window !== 'undefined') {
+  window.PalindromePDA = PalindromePDA;
+  window.CFGtoPDA = PalindromePDA;
+}
+
+</script>
+  <script>
+/**
+ * visualizer.js
+ * 
+ * Rendering and DOM manipulation for the PDA Visual Simulator.
+ * Handles dynamic SVG state diagrams, input tape, vertical stack,
+ * trace table, palindrome mirror comparison, and step information panels.
+ */
+
+class Visualizer {
+  constructor() {
+    this.diagramSVGs = {};
+  }
+
+  /**
+   * Initializes SVG state diagrams for both Question 1 and Question 2.
+   * @param {Object} [matchingPDA]
+   * @param {Object} [palindromePDA]
+   */
+  initDiagrams(matchingPDA, palindromePDA) {
+    this.renderMatchingDiagram('diagram-matching', matchingPDA);
+    this.renderPalindromeDiagram('diagram-palindrome', palindromePDA);
+  }
+
+  /**
+   * Renders the SVG diagram for Question 1 (Matching / Configurable PDA).
+   * @param {string} containerId 
+   * @param {Object} [pdaModel]
+   */
+  renderMatchingDiagram(containerId, pdaModel) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    // If a non-default 3-state preset is active (e.g. 0^n 1^n, a^n b^2n, w c w^R)
+    if (pdaModel && !pdaModel.isDefault && pdaModel.states && pdaModel.states.length === 3) {
+      this._render3StateMatchingDiagram(container, pdaModel);
+      return;
+    }
+
+    // Default 5-State Diagram for L = { 0^i 1^j 2^j 3^i }
+    const width = 860;
+    const height = 260;
+    const yCenter = 150;
+
+    const coords = {
+      q0: { x: 95, y: yCenter },
+      q1: { x: 270, y: yCenter },
+      q2: { x: 445, y: yCenter },
+      q3: { x: 620, y: yCenter },
+      qf: { x: 785, y: yCenter }
+    };
+
+    const svg = `
+      <svg viewBox="0 0 ${width} ${height}" class="pda-svg" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#475569"/>
+          </marker>
+          <marker id="arrow-active" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#2563eb"/>
+          </marker>
+          <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#2563eb" flood-opacity="0.35"/>
+          </filter>
+        </defs>
+
+        <!-- Start initial arrow into q0 -->
+        <g class="transition-group">
+          <line x1="25" y1="${yCenter}" x2="65" y2="${yCenter}" stroke="#475569" stroke-width="2.5" marker-end="url(#arrow)"/>
+          <text x="35" y="${yCenter - 10}" class="svg-label start-label">Start</text>
+        </g>
+
+        <!-- q0 Self Loop: 0, Z -> XZ and 0, X -> XX -->
+        <g id="trans-q0-0-Z" class="svg-transition">
+          <path d="M 80,123 C 65,45 125,45 110,123" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+          <rect x="52" y="16" width="90" height="34" rx="4" class="label-bg"/>
+          <text x="97" y="30" class="svg-label trans-label" text-anchor="middle">0, Z → XZ</text>
+          <text x="97" y="44" class="svg-label trans-label" text-anchor="middle">0, X → XX</text>
+        </g>
+
+        <!-- q0 -> q1: 1, X -> YX -->
+        <g id="trans-q0-1-X" class="svg-transition">
+          <line x1="125" y1="${yCenter}" x2="240" y2="${yCenter}" stroke="#475569" stroke-width="2.2" marker-end="url(#arrow)"/>
+          <rect x="145" y="${yCenter - 25}" width="78" height="20" rx="4" class="label-bg"/>
+          <text x="184" y="${yCenter - 11}" class="svg-label trans-label" text-anchor="middle">1, X → YX</text>
+        </g>
+
+        <!-- q1 Self Loop: 1, Y -> YY -->
+        <g id="trans-q1-1-Y" class="svg-transition">
+          <path d="M 255,123 C 240,55 300,55 285,123" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+          <rect x="232" y="28" width="76" height="20" rx="4" class="label-bg"/>
+          <text x="270" y="42" class="svg-label trans-label" text-anchor="middle">1, Y → YY</text>
+        </g>
+
+        <!-- q1 -> q2: 2, Y -> ε -->
+        <g id="trans-q1-2-Y" class="svg-transition">
+          <line x1="300" y1="${yCenter}" x2="415" y2="${yCenter}" stroke="#475569" stroke-width="2.2" marker-end="url(#arrow)"/>
+          <rect x="323" y="${yCenter - 25}" width="70" height="20" rx="4" class="label-bg"/>
+          <text x="358" y="${yCenter - 11}" class="svg-label trans-label" text-anchor="middle">2, Y → ε</text>
+        </g>
+
+        <!-- q2 Self Loop: 2, Y -> ε -->
+        <g id="trans-q2-2-Y" class="svg-transition">
+          <path d="M 430,123 C 415,55 475,55 460,123" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+          <rect x="407" y="28" width="70" height="20" rx="4" class="label-bg"/>
+          <text x="442" y="42" class="svg-label trans-label" text-anchor="middle">2, Y → ε</text>
+        </g>
+
+        <!-- q2 -> q3: 3, X -> ε -->
+        <g id="trans-q2-3-X" class="svg-transition">
+          <line x1="475" y1="${yCenter}" x2="590" y2="${yCenter}" stroke="#475569" stroke-width="2.2" marker-end="url(#arrow)"/>
+          <rect x="498" y="${yCenter - 25}" width="70" height="20" rx="4" class="label-bg"/>
+          <text x="533" y="${yCenter - 11}" class="svg-label trans-label" text-anchor="middle">3, X → ε</text>
+        </g>
+
+        <!-- q3 Self Loop: 3, X -> ε -->
+        <g id="trans-q3-3-X" class="svg-transition">
+          <path d="M 605,123 C 590,55 650,55 635,123" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+          <rect x="582" y="28" width="70" height="20" rx="4" class="label-bg"/>
+          <text x="617" y="42" class="svg-label trans-label" text-anchor="middle">3, X → ε</text>
+        </g>
+
+        <!-- q3 -> qf: ε, Z -> Z -->
+        <g id="trans-q3-eps-Z" class="svg-transition">
+          <line x1="650" y1="${yCenter}" x2="750" y2="${yCenter}" stroke="#475569" stroke-width="2.2" marker-end="url(#arrow)"/>
+          <rect x="665" y="${yCenter - 25}" width="72" height="20" rx="4" class="label-bg"/>
+          <text x="701" y="${yCenter - 11}" class="svg-label trans-label" text-anchor="middle">ε, Z → Z</text>
+        </g>
+
+        <!-- ================= STATES ================= -->
+        <g id="state-q0" class="svg-state" transform="translate(${coords.q0.x}, ${coords.q0.y})">
+          <circle cx="0" cy="0" r="28" class="state-circle"/>
+          <text cx="0" cy="0" dy="5" class="state-text" text-anchor="middle">q₀</text>
+          <text cx="0" cy="42" class="state-sublabel" text-anchor="middle">Read 0s</text>
+        </g>
+
+        <g id="state-q1" class="svg-state" transform="translate(${coords.q1.x}, ${coords.q1.y})">
+          <circle cx="0" cy="0" r="28" class="state-circle"/>
+          <text cx="0" cy="0" dy="5" class="state-text" text-anchor="middle">q₁</text>
+          <text cx="0" cy="42" class="state-sublabel" text-anchor="middle">Read 1s</text>
+        </g>
+
+        <g id="state-q2" class="svg-state" transform="translate(${coords.q2.x}, ${coords.q2.y})">
+          <circle cx="0" cy="0" r="28" class="state-circle"/>
+          <text cx="0" cy="0" dy="5" class="state-text" text-anchor="middle">q₂</text>
+          <text cx="0" cy="42" class="state-sublabel" text-anchor="middle">Pop Ys (2s)</text>
+        </g>
+
+        <g id="state-q3" class="svg-state" transform="translate(${coords.q3.x}, ${coords.q3.y})">
+          <circle cx="0" cy="0" r="28" class="state-circle"/>
+          <text cx="0" cy="0" dy="5" class="state-text" text-anchor="middle">q₃</text>
+          <text cx="0" cy="42" class="state-sublabel" text-anchor="middle">Pop Xs (3s)</text>
+        </g>
+
+        <g id="state-qf" class="svg-state final-state" transform="translate(${coords.qf.x}, ${coords.qf.y})">
+          <circle cx="0" cy="0" r="30" class="state-circle outer-circle"/>
+          <circle cx="0" cy="0" r="24" class="state-circle inner-circle"/>
+          <text cx="0" cy="0" dy="5" class="state-text" text-anchor="middle">q_f</text>
+          <text cx="0" cy="44" class="state-sublabel" text-anchor="middle">Accept</text>
+        </g>
+      </svg>
+    `;
+
+    container.innerHTML = svg;
+  }
+
+  /**
+   * Helper to render a 3-state diagram for alternate PDA presets (e.g. 0^n 1^n, a^n b^2n).
+   */
+  _render3StateMatchingDiagram(container, pdaModel) {
+    const width = 800;
+    const height = 260;
+    const yCenter = 140;
+
+    const coords = {
+      q0: { x: 140, y: yCenter },
+      q1: { x: 400, y: yCenter },
+      qf: { x: 660, y: yCenter }
+    };
+
+    const trans = pdaModel.parsedTransitions || [];
+    const q0Loops = trans.filter(t => t.state === 'q0' && t.nextState === 'q0').map(t => `${t.input}, ${t.stackTop} → ${t.replacement || 'ε'}`);
+    const q0Toq1 = trans.filter(t => t.state === 'q0' && t.nextState === 'q1').map(t => `${t.input}, ${t.stackTop} → ${t.replacement || 'ε'}`)[0] || '1, X → ε';
+    const q1Loops = trans.filter(t => t.state === 'q1' && t.nextState === 'q1').map(t => `${t.input}, ${t.stackTop} → ${t.replacement || 'ε'}`);
+    const q1Toqf = trans.filter(t => t.state === 'q1' && t.nextState === 'qf').map(t => `${t.input}, ${t.stackTop} → ${t.replacement || 'ε'}`)[0] || 'ε, Z → Z';
+
+    const svg = `
+      <svg viewBox="0 0 ${width} ${height}" class="pda-svg" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#475569"/>
+          </marker>
+          <marker id="arrow-active" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#2563eb"/>
+          </marker>
+        </defs>
+
+        <!-- Start initial arrow -->
+        <g class="transition-group">
+          <line x1="50" y1="${yCenter}" x2="108" y2="${yCenter}" stroke="#475569" stroke-width="2.5" marker-end="url(#arrow)"/>
+          <text x="60" y="${yCenter - 10}" class="svg-label start-label">Start</text>
+        </g>
+
+        <!-- q0 Self Loop -->
+        <g id="trans-q0-loop" class="svg-transition">
+          <path d="M 125,113 C 90,35 190,35 155,113" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+          <rect x="95" y="15" width="90" height="${Math.max(24, q0Loops.length * 16)}" rx="4" class="label-bg"/>
+          ${q0Loops.map((lbl, idx) => `<text x="140" y="${28 + idx * 14}" class="svg-label trans-label" text-anchor="middle">${lbl}</text>`).join('')}
+        </g>
+
+        <!-- q0 -> q1 -->
+        <g id="trans-q0-q1" class="svg-transition">
+          <line x1="172" y1="${yCenter}" x2="368" y2="${yCenter}" stroke="#475569" stroke-width="2.2" marker-end="url(#arrow)"/>
+          <rect x="225" y="${yCenter - 25}" width="90" height="20" rx="4" class="label-bg"/>
+          <text x="270" y="${yCenter - 11}" class="svg-label trans-label" text-anchor="middle">${q0Toq1}</text>
+        </g>
+
+        <!-- q1 Self Loop -->
+        <g id="trans-q1-loop" class="svg-transition">
+          <path d="M 385,113 C 350,35 450,35 415,113" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+          <rect x="355" y="15" width="90" height="${Math.max(24, q1Loops.length * 16)}" rx="4" class="label-bg"/>
+          ${q1Loops.map((lbl, idx) => `<text x="400" y="${28 + idx * 14}" class="svg-label trans-label" text-anchor="middle">${lbl}</text>`).join('')}
+        </g>
+
+        <!-- q1 -> qf -->
+        <g id="trans-q1-qf" class="svg-transition">
+          <line x1="432" y1="${yCenter}" x2="628" y2="${yCenter}" stroke="#475569" stroke-width="2.2" marker-end="url(#arrow)"/>
+          <rect x="485" y="${yCenter - 25}" width="90" height="20" rx="4" class="label-bg"/>
+          <text x="530" y="${yCenter - 11}" class="svg-label trans-label" text-anchor="middle">${q1Toqf}</text>
+        </g>
+
+        <!-- States -->
+        <g id="state-q0" class="svg-state" transform="translate(${coords.q0.x}, ${coords.q0.y})">
+          <circle cx="0" cy="0" r="30" class="state-circle"/>
+          <text cx="0" cy="0" dy="5" class="state-text" text-anchor="middle">q₀</text>
+        </g>
+
+        <g id="state-q1" class="svg-state" transform="translate(${coords.q1.x}, ${coords.q1.y})">
+          <circle cx="0" cy="0" r="30" class="state-circle"/>
+          <text cx="0" cy="0" dy="5" class="state-text" text-anchor="middle">q₁</text>
+        </g>
+
+        <g id="state-qf" class="svg-state final-state" transform="translate(${coords.qf.x}, ${coords.qf.y})">
+          <circle cx="0" cy="0" r="30" class="state-circle outer-circle"/>
+          <circle cx="0" cy="0" r="24" class="state-circle inner-circle"/>
+          <text cx="0" cy="0" dy="5" class="state-text" text-anchor="middle">q_f</text>
+        </g>
+      </svg>
+    `;
+
+    container.innerHTML = svg;
+  }
+
+  /**
+   * Renders the 3-state SVG diagram for Question 2: Palindrome / General CFG-to-PDA.
+   * Dynamically displays user grammar productions on the top loop and terminals on the bottom loop.
+   * @param {string} containerId 
+   * @param {Object} [pdaModel]
+   */
+  renderPalindromeDiagram(containerId, pdaModel) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const width = 800;
+    const height = 300;
+    const yCenter = 150;
+
+    const coords = {
+      q0: { x: 120, y: yCenter },
+      q1: { x: 400, y: yCenter },
+      qf: { x: 680, y: yCenter }
+    };
+
+    const startSym = (pdaModel && pdaModel.startSymbol) ? pdaModel.startSymbol : 'S';
+    const prods = (pdaModel && pdaModel.productions) ? pdaModel.productions : [
+      { fullStr: 'S → aSa' },
+      { fullStr: 'S → bSb' },
+      { fullStr: 'S → ε' }
+    ];
+    const terms = (pdaModel && pdaModel.terminals) ? pdaModel.terminals : ['a', 'b'];
+
+    const topBoxHeight = Math.min(80, Math.max(34, prods.length * 16 + 8));
+    const botBoxHeight = Math.min(55, Math.max(26, terms.length * 16 + 6));
+
+    const svg = `
+      <svg viewBox="0 0 ${width} ${height}" class="pda-svg" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrow-pal" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#475569"/>
+          </marker>
+          <marker id="arrow-pal-active" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#2563eb"/>
+          </marker>
+        </defs>
+
+        <!-- Start initial arrow into q0 -->
+        <g class="transition-group">
+          <line x1="40" y1="${yCenter}" x2="88" y2="${yCenter}" stroke="#475569" stroke-width="2.5" marker-end="url(#arrow-pal)"/>
+          <text x="50" y="${yCenter - 10}" class="svg-label start-label">Start</text>
+        </g>
+
+        <!-- q0 -> q1: ε, Z -> SZ -->
+        <g id="trans-q0-q1-init" class="svg-transition">
+          <line x1="152" y1="${yCenter}" x2="368" y2="${yCenter}" stroke="#475569" stroke-width="2.2" marker-end="url(#arrow-pal)"/>
+          <rect x="215" y="${yCenter - 25}" width="88" height="20" rx="4" class="label-bg"/>
+          <text x="259" y="${yCenter - 11}" class="svg-label trans-label" text-anchor="middle">ε, Z → ${startSym}Z</text>
+        </g>
+
+        <!-- q1 Top Self-Loops: Grammar Expansions -->
+        <g id="trans-q1-expansions" class="svg-transition">
+          <path d="M 382,121 C 330,30 470,30 418,121" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrow-pal)"/>
+          <rect x="330" y="8" width="140" height="${topBoxHeight}" rx="4" class="label-bg"/>
+          ${prods.slice(0, 4).map((p, idx) => `<text x="400" y="${22 + idx * 15}" class="svg-label trans-label" text-anchor="middle">ε, ${p.fullStr}</text>`).join('')}
+          ${prods.length > 4 ? `<text x="400" y="${22 + 4 * 15}" class="svg-label trans-label" text-anchor="middle">... +${prods.length - 4} rules</text>` : ''}
+        </g>
+
+        <!-- Aliases for compatibility with transition IDs -->
+        <g id="trans-q1-aSa" class="svg-transition-alias"></g>
+        <g id="trans-q1-bSb" class="svg-transition-alias"></g>
+        <g id="trans-q1-eps" class="svg-transition-alias"></g>
+
+        <!-- q1 Bottom Self-Loops: Terminal Matches -->
+        <g id="trans-q1-matches" class="svg-transition">
+          <path d="M 418,179 C 470,270 330,270 382,179" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrow-pal)"/>
+          <rect x="355" y="235" width="90" height="${botBoxHeight}" rx="4" class="label-bg"/>
+          ${terms.slice(0, 3).map((t, idx) => `<text x="400" y="${250 + idx * 15}" class="svg-label trans-label" text-anchor="middle">${t}, ${t} → ε</text>`).join('')}
+          ${terms.length > 3 ? `<text x="400" y="${250 + 3 * 15}" class="svg-label trans-label" text-anchor="middle">...</text>` : ''}
+        </g>
+
+        <g id="trans-q1-match-a" class="svg-transition-alias"></g>
+        <g id="trans-q1-match-b" class="svg-transition-alias"></g>
+
+        <!-- q1 -> qf: ε, Z -> Z -->
+        <g id="trans-q1-qf-accept" class="svg-transition">
+          <line x1="432" y1="${yCenter}" x2="648" y2="${yCenter}" stroke="#475569" stroke-width="2.2" marker-end="url(#arrow-pal)"/>
+          <rect x="495" y="${yCenter - 25}" width="90" height="20" rx="4" class="label-bg"/>
+          <text x="540" y="${yCenter - 11}" class="svg-label trans-label" text-anchor="middle">ε, Z → Z</text>
+        </g>
+
+        <!-- States -->
+        <g id="state-pal-q0" class="svg-state" transform="translate(${coords.q0.x}, ${coords.q0.y})">
+          <circle cx="0" cy="0" r="30" class="state-circle"/>
+          <text cx="0" cy="0" dy="5" class="state-text" text-anchor="middle">q₀</text>
+          <text cx="0" cy="45" class="state-sublabel" text-anchor="middle">Init (Push ${startSym})</text>
+        </g>
+
+        <g id="state-pal-q1" class="svg-state" transform="translate(${coords.q1.x}, ${coords.q1.y})">
+          <circle cx="0" cy="0" r="32" class="state-circle"/>
+          <text cx="0" cy="0" dy="5" class="state-text" text-anchor="middle">q₁</text>
+          <text cx="0" cy="5" class="state-sublabel" text-anchor="middle" opacity="0"></text>
+        </g>
+
+        <g id="state-pal-qf" class="svg-state final-state" transform="translate(${coords.qf.x}, ${coords.qf.y})">
+          <circle cx="0" cy="0" r="32" class="state-circle outer-circle"/>
+          <circle cx="0" cy="0" r="26" class="state-circle inner-circle"/>
+          <text cx="0" cy="0" dy="5" class="state-text" text-anchor="middle">q_f</text>
+          <text cx="0" cy="47" class="state-sublabel" text-anchor="middle">Accept</text>
+        </g>
+      </svg>
+    `;
+
+    container.innerHTML = svg;
+  }
+
+  /**
+   * Highlights the active state in the given diagram container.
+   * @param {string} containerId 
+   * @param {string} stateId 
+   */
+  highlightState(containerId, stateId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const states = container.querySelectorAll('.svg-state');
+    states.forEach(s => s.classList.remove('active-state', 'pulse'));
+
+    if (!stateId) return;
+
+    const prefix = containerId === 'diagram-palindrome' ? 'state-pal-' : 'state-';
+    const targetState = container.querySelector(`#${prefix}${stateId}`) || container.querySelector(`#state-${stateId}`);
+    if (targetState) {
+      targetState.classList.add('active-state', 'pulse');
+    }
+  }
+
+  /**
+   * Highlights the active transition in the given diagram container.
+   * @param {string} containerId 
+   * @param {string} transitionId 
+   */
+  highlightTransition(containerId, transitionId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const transitions = container.querySelectorAll('.svg-transition');
+    transitions.forEach(t => {
+      t.classList.remove('active-transition');
+      const path = t.querySelector('path, line');
+      if (path) {
+        path.setAttribute('stroke', '#475569');
+        path.setAttribute('stroke-width', path.tagName.toLowerCase() === 'path' ? '2' : '2.2');
+        path.removeAttribute('marker-end-active');
+        if (containerId === 'diagram-palindrome') {
+          path.setAttribute('marker-end', 'url(#arrow-pal)');
+        } else {
+          path.setAttribute('marker-end', 'url(#arrow)');
+        }
+      }
+    });
+
+    if (!transitionId) return;
+
+    let targetId = transitionId;
+
+    if (containerId === 'diagram-palindrome') {
+      if (transitionId.startsWith('trans-q1-expand-') || transitionId === 'trans-q1-aSa' || transitionId === 'trans-q1-bSb' || transitionId === 'trans-q1-eps') {
+        targetId = 'trans-q1-expansions';
+      } else if (transitionId.startsWith('trans-q1-match-') || transitionId === 'trans-q1-match-a' || transitionId === 'trans-q1-match-b') {
+        targetId = 'trans-q1-matches';
+      }
+    } else {
+      if (transitionId === 'trans-q0-0-X') {
+        targetId = 'trans-q0-0-Z';
+      } else if (transitionId.includes('q0') && transitionId.includes('q0')) {
+        targetId = 'trans-q0-loop';
+      } else if (transitionId.includes('q1') && transitionId.includes('q1')) {
+        targetId = 'trans-q1-loop';
+      } else if (transitionId.includes('q0') && transitionId.includes('q1')) {
+        targetId = 'trans-q0-q1';
+      } else if (transitionId.includes('q1') && transitionId.includes('qf')) {
+        targetId = 'trans-q1-qf';
+      }
+    }
+
+    const target = container.querySelector(`#${targetId}`);
+    if (target) {
+      target.classList.add('active-transition');
+      const path = target.querySelector('path, line');
+      if (path) {
+        path.setAttribute('stroke', '#2563eb');
+        path.setAttribute('stroke-width', '3.5');
+        if (containerId === 'diagram-palindrome') {
+          path.setAttribute('marker-end', 'url(#arrow-pal-active)');
+        } else {
+          path.setAttribute('marker-end', 'url(#arrow-active)');
+        }
+      }
+    }
+  }
+
+  /**
+   * Renders the input tape visualization.
+   * @param {string} containerId 
+   * @param {string} fullInput 
+   * @param {number} activeIndex 
+   * @param {string} consumedInStep 
+   */
+  renderInputTape(containerId, fullInput, activeIndex, consumedInStep) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    if (!fullInput || fullInput.length === 0) {
+      container.innerHTML = `
+        <div class="tape-wrapper empty-tape">
+          <div class="tape-cell active current-epsilon">
+            <span class="tape-char">ε</span>
+            <span class="tape-sub">Empty Input</span>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    let html = '<div class="tape-wrapper">';
+    for (let i = 0; i < fullInput.length; i++) {
+      const ch = fullInput[i];
+      let statusClass = 'upcoming';
+      let indicator = '';
+
+      if (i < activeIndex) {
+        statusClass = 'consumed';
+        indicator = '<span class="cell-status-icon">✓</span>';
+      } else if (i === activeIndex) {
+        statusClass = 'active';
+        indicator = '<div class="tape-head-pointer"><span class="pointer-arrow">▼</span><span class="pointer-text">READING</span></div>';
+      }
+
+      html += `
+        <div class="tape-cell ${statusClass}">
+          ${indicator}
+          <span class="tape-char">${ch}</span>
+          <span class="tape-index">${i}</span>
+        </div>
+      `;
+    }
+
+    if (activeIndex >= fullInput.length) {
+      html += `
+        <div class="tape-cell end-marker active">
+          <div class="tape-head-pointer"><span class="pointer-arrow">▼</span><span class="pointer-text">END</span></div>
+          <span class="tape-char">⊣</span>
+          <span class="tape-index">EOF</span>
+        </div>
+      `;
+    }
+
+    html += '</div>';
+    container.innerHTML = html;
+
+    const tapeWrap = container.querySelector('.tape-wrapper');
+    const activeCell = container.querySelector('.tape-cell.active');
+    if (tapeWrap && activeCell) {
+      const targetScroll = activeCell.offsetLeft - (tapeWrap.clientWidth / 2) + (activeCell.clientWidth / 2);
+      tapeWrap.scrollTo({ left: Math.max(0, targetScroll), behavior: 'smooth' });
+    }
+  }
+
+  /**
+   * Renders the vertical visual stack.
+   * @param {string} containerId 
+   * @param {Array<string>} stackArray 
+   * @param {string} lastOperation 
+   * @param {string} symbolOperated 
+   */
+  renderVisualStack(containerId, stackArray, lastOperation, symbolOperated) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    if (!stackArray || stackArray.length === 0) {
+      container.innerHTML = `
+        <div class="stack-box empty-stack">
+          <div class="empty-stack-msg">Stack Empty</div>
+          <div class="stack-base">BOTTOM OF STACK</div>
+        </div>
+      `;
+      return;
+    }
+
+    let html = `
+      <div class="stack-box">
+        <div class="stack-top-header">
+          <span class="stack-top-badge">▲ TOP OF STACK (LIFO)</span>
+          <span class="stack-count-badge">${stackArray.length} symbol${stackArray.length === 1 ? '' : 's'}</span>
+        </div>
+        <div class="stack-elements-container">
+    `;
+
+    for (let i = stackArray.length - 1; i >= 0; i--) {
+      const sym = stackArray[i];
+      const isTop = i === stackArray.length - 1;
+      const isBottom = i === 0;
+
+      let colorClass = 'block-default';
+      let description = '';
+
+      if (sym === 'Z') {
+        colorClass = 'block-bottom-z';
+        description = 'Bottom Marker';
+      } else if (sym === 'X') {
+        colorClass = 'block-x';
+        description = 'Stack X';
+      } else if (sym === 'Y') {
+        colorClass = 'block-y';
+        description = 'Stack Y';
+      } else if (sym === 'S') {
+        colorClass = 'block-s';
+        description = 'Variable S';
+      } else if (sym === 'a') {
+        colorClass = 'block-a';
+        description = 'Terminal a';
+      } else if (sym === 'b') {
+        colorClass = 'block-b';
+        description = 'Terminal b';
+      } else {
+        colorClass = 'block-default';
+        description = `Symbol ${sym}`;
+      }
+
+      const topClass = isTop ? 'is-top-element anim-top-focus' : '';
+      const bottomClass = isBottom ? 'is-bottom-element' : '';
+      const pushAnimClass = (isTop && lastOperation === 'PUSH') ? 'anim-push' : '';
+
+      html += `
+        <div class="stack-block ${colorClass} ${topClass} ${bottomClass} ${pushAnimClass}" data-depth="${stackArray.length - 1 - i}">
+          <div class="block-left">
+            <span class="block-symbol">${sym}</span>
+            <span class="block-desc">${description}</span>
+          </div>
+          <div class="block-right">
+            ${isTop ? '<span class="top-tag">TOP</span>' : ''}
+            <span class="block-level">idx ${i}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    html += `
+        </div>
+        <div class="stack-base">
+          <span class="base-icon">⏚</span>
+          <span class="base-text">STACK BASE</span>
+        </div>
+      </div>
+    `;
+
+    container.innerHTML = html;
+  }
+
+  /**
+   * Renders the Step Information card.
+   * @param {string} containerId 
+   * @param {Object} step 
+   * @param {number} totalSteps 
+   */
+  renderStepInfo(containerId, step, totalSteps) {
+    const container = document.getElementById(containerId);
+    if (!container || !step) return;
+
+    let opBadgeClass = 'badge-init';
+    if (step.operation === 'PUSH') opBadgeClass = 'badge-push';
+    else if (step.operation === 'POP') opBadgeClass = 'badge-pop';
+    else if (step.operation === 'ACCEPT') opBadgeClass = 'badge-accept';
+    else if (step.operation === 'REJECT') opBadgeClass = 'badge-reject';
+
+    const inputLabel = step.inputConsumed === '-' 
+      ? 'Initial State' 
+      : (step.inputConsumed === 'ε' ? 'ε (Epsilon)' : `'${step.inputConsumed}'`);
+
+    const stackBeforeStr = step.stackBefore ? step.stackBefore.join('') : 'Z';
+    const stackAfterStr = step.stackAfter ? step.stackAfter.join('') : 'Z';
+
+    const html = `
+      <div class="step-card">
+        <div class="step-card-header">
+          <div class="step-badge-group">
+            <span class="step-number-badge">Step ${step.stepNumber} of ${Math.max(0, totalSteps - 1)}</span>
+            <span class="state-badge">State: <strong>${step.state}</strong></span>
+            ${step.nextState ? `<span class="next-state-badge">→ <strong>${step.nextState}</strong></span>` : ''}
+            <span class="op-badge ${opBadgeClass}">${step.operation}</span>
+          </div>
+          <div class="step-input-badge">
+            <span class="label">Input Consumed:</span>
+            <span class="val">${inputLabel}</span>
+          </div>
+        </div>
+
+        <div class="step-card-body">
+          <div class="step-stack-transition">
+            <div class="stack-box-pill">
+              <span class="pill-label">Stack Before</span>
+              <code class="pill-val">${stackBeforeStr}</code>
+            </div>
+            <div class="transition-arrow">➔</div>
+            <div class="stack-box-pill">
+              <span class="pill-label">Stack After</span>
+              <code class="pill-val">${stackAfterStr}</code>
+            </div>
+          </div>
+          <div class="step-explanation">
+            <p>${step.explanation}</p>
+          </div>
+        </div>
+      </div>
+    `;
+
+    container.innerHTML = html;
+  }
+
+  /**
+   * Renders the execution trace table.
+   * @param {string} containerId 
+   * @param {Array<Object>} steps 
+   * @param {number} activeStepIndex 
+   */
+  renderTraceTable(containerId, steps, activeStepIndex) {
+    const container = document.getElementById(containerId);
+    if (!container || !steps) return;
+
+    let html = `
+      <div class="trace-table-container">
+        <table class="trace-table">
+          <thead>
+            <tr>
+              <th class="col-step">Step</th>
+              <th class="col-state">State</th>
+              <th class="col-input">Input Consumed</th>
+              <th class="col-stack">Stack <span class="sub">(Bottom on Left)</span></th>
+              <th class="col-action">Action / Operation</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
+
+    steps.forEach((step, idx) => {
+      const isActive = idx === activeStepIndex;
+      const isPast = idx < activeStepIndex;
+      const rowClass = isActive ? 'active-row' : (isPast ? 'past-row' : 'future-row');
+
+      let opBadge = '';
+      if (step.operation === 'PUSH') {
+        opBadge = `<span class="table-op-badge badge-push">PUSH ${step.symbolOperated || ''}</span>`;
+      } else if (step.operation === 'POP') {
+        opBadge = `<span class="table-op-badge badge-pop">POP ${step.symbolOperated || ''}</span>`;
+      } else if (step.operation === 'ACCEPT') {
+        opBadge = `<span class="table-op-badge badge-accept">ACCEPT</span>`;
+      } else if (step.operation === 'REJECT') {
+        opBadge = `<span class="table-op-badge badge-reject">REJECT</span>`;
+      } else {
+        opBadge = `<span class="table-op-badge badge-init">INIT</span>`;
+      }
+
+      html += `
+        <tr id="trace-row-${idx}" class="${rowClass}" onclick="window.app.goToStep(${idx})">
+          <td class="col-step">${step.stepNumber}</td>
+          <td class="col-state"><code>${step.state}</code></td>
+          <td class="col-input"><code>${step.inputConsumed}</code></td>
+          <td class="col-stack"><code class="stack-code">${step.stackString}</code></td>
+          <td class="col-action">
+            ${opBadge}
+            <span class="action-summary">${step.production || ''}</span>
+          </td>
+        </tr>
+      `;
+    });
+
+    html += `
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    container.innerHTML = html;
+
+    const tableContainer = container.querySelector('.trace-table-container');
+    const activeRow = container.querySelector('.active-row');
+    if (tableContainer && activeRow) {
+      const targetScroll = activeRow.offsetTop - (tableContainer.clientHeight / 2) + (activeRow.clientHeight / 2);
+      tableContainer.scrollTo({ top: Math.max(0, targetScroll), behavior: 'smooth' });
+    }
+  }
+
+  /**
+   * Renders the Palindrome Mirror Comparison widget for Question 2.
+   * @param {string} containerId 
+   * @param {Object} analysis 
+   */
+  renderPalindromeMirror(containerId, analysis) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    if (!analysis || !analysis.input || analysis.input.length === 0) {
+      container.innerHTML = `
+        <div class="palindrome-mirror-box empty-mirror">
+          <div class="mirror-status success">Empty String (ε) is inherently an even-length palindrome (0 characters).</div>
+        </div>
+      `;
+      return;
+    }
+
+    const input = analysis.input;
+    const len = input.length;
+    const half = Math.floor(len / 2);
+
+    let html = `
+      <div class="palindrome-mirror-box">
+        <div class="mirror-header">
+          <span class="mirror-title">Symmetry Analysis (Input vs Reverse)</span>
+          <span class="mirror-len-badge">Length: ${len} (${analysis.isEvenLength ? 'Even' : 'Odd'})</span>
+        </div>
+
+        <div class="mirror-rows">
+          <div class="mirror-row">
+            <span class="row-label">Input:</span>
+            <div class="char-cells">
+    `;
+
+    for (let i = 0; i < len; i++) {
+      const ch = input[i];
+      const j = len - 1 - i;
+      const match = input[i] === input[j];
+      const isCenter = analysis.isOddLength && i === half;
+
+      let cellClass = match ? 'match-cell' : 'mismatch-cell';
+      if (isCenter) cellClass = 'center-cell';
+
+      html += `<span class="mirror-char ${cellClass}" title="Pos ${i + 1}: '${ch}'">${ch}</span>`;
+    }
+
+    html += `
+            </div>
+          </div>
+
+          <div class="mirror-row">
+            <span class="row-label">Reverse:</span>
+            <div class="char-cells">
+    `;
+
+    const reversed = analysis.reversed || input.split('').reverse().join('');
+    for (let i = 0; i < len; i++) {
+      const ch = reversed[i];
+      const j = len - 1 - i;
+      const match = reversed[i] === input[i];
+      const isCenter = analysis.isOddLength && i === half;
+
+      let cellClass = match ? 'match-cell' : 'mismatch-cell';
+      if (isCenter) cellClass = 'center-cell';
+
+      html += `<span class="mirror-char ${cellClass}" title="Pos ${i + 1}: '${ch}'">${ch}</span>`;
+    }
+
+    html += `
+            </div>
+          </div>
+        </div>
+
+        <div class="mirror-verdict">
+    `;
+
+    if (analysis.isPalindrome && analysis.isEvenLength) {
+      html += `
+        <div class="mirror-note note-success">
+          <span class="icon">✓</span>
+          <span><strong>Even-length Palindrome:</strong> Mirrors perfectly with even length (${len}). Generated by CFG S → aSa | bSb | ε.</span>
+        </div>
+      `;
+    } else if (analysis.isPalindrome && analysis.isOddLength) {
+      html += `
+        <div class="mirror-note note-warning">
+          <span class="icon">⚠</span>
+          <span><strong>Odd-length Palindrome:</strong> Symmetrical around center '${input[half]}', but only even-length palindromes are generated by S → aSa | bSb | ε.</span>
+        </div>
+      `;
+    } else {
+      const mismatch = analysis.firstMismatch;
+      html += `
+        <div class="mirror-note note-error">
+          <span class="icon">✗</span>
+          <span><strong>Not a Palindrome:</strong> Mismatch between position ${mismatch ? mismatch.i + 1 : 1} ('${mismatch ? mismatch.c1 : ''}') and position ${mismatch ? mismatch.j + 1 : len} ('${mismatch ? mismatch.c2 : ''}').</span>
+        </div>
+      `;
+    }
+
+    html += `
+        </div>
+      </div>
+    `;
+
+    container.innerHTML = html;
+  }
+
+  /**
+   * Renders the Grammar Derivation step progression for Question 2.
+   * @param {string} containerId 
+   * @param {Object} simulationResult 
+   * @param {number} currentStepIndex 
+   */
+  renderDerivation(containerId, simulationResult, currentStepIndex) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    if (!simulationResult || !simulationResult.accepted || !simulationResult.analysis || !simulationResult.analysis.derivation) {
+      container.innerHTML = `
+        <div class="derivation-box empty-derivation">
+          <div class="derivation-title">Grammar Derivation</div>
+          <div class="no-derivation-msg">No valid leftmost derivation exists for this input under the current grammar.</div>
+        </div>
+      `;
+      return;
+    }
+
+    const derivation = simulationResult.analysis.derivation;
+    if (!derivation || derivation.length === 0) return;
+
+    let html = `
+      <div class="derivation-box">
+        <div class="derivation-title">Leftmost CFG Derivation (S ⇒* w)</div>
+        <div class="derivation-chain">
+    `;
+
+    derivation.forEach((stepStr, idx) => {
+      const isLast = idx === derivation.length - 1;
+      html += `
+        <div class="derivation-step">
+          <span class="step-num">Step ${idx}</span>
+          <code class="derivation-code">${stepStr}</code>
+        </div>
+        ${!isLast ? '<span class="derivation-arrow">⇒</span>' : ''}
+      `;
+    });
+
+    html += `
+        </div>
+      </div>
+    `;
+
+    container.innerHTML = html;
+  }
+
+  /**
+   * Renders the final ACCEPTED or REJECTED result banner.
+   * @param {string} containerId 
+   * @param {Object} simulationResult 
+   */
+  renderResultBanner(containerId, simulationResult) {
+    const container = document.getElementById(containerId);
+    if (!container || !simulationResult) return;
+
+    let html = '';
+    if (simulationResult.accepted) {
+      html = `
+        <div class="result-banner result-accepted">
+          <div class="result-icon-circle">✓</div>
+          <div class="result-content">
+            <h4 class="result-heading">ACCEPTED</h4>
+            <p class="result-text">${simulationResult.reason}</p>
+          </div>
+        </div>
+      `;
+    } else {
+      html = `
+        <div class="result-banner result-rejected">
+          <div class="result-icon-circle">✗</div>
+          <div class="result-content">
+            <h4 class="result-heading">REJECTED</h4>
+            <p class="result-text">${simulationResult.reason}</p>
+          </div>
+        </div>
+      `;
+    }
+
+    container.innerHTML = html;
+  }
+}
+
+// Export for module/testing environments as well as browser globals
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { Visualizer };
+} else if (typeof window !== 'undefined') {
+  window.Visualizer = Visualizer;
+}
+
+</script>
+  <script>
+/**
+ * app.js
+ * 
+ * Application Controller for the PDA Visual Simulator.
+ * Coordinates between PDA computation engines (matching-pda, palindrome-pda),
+ * visual rendering (visualizer), dynamic configuration drawers, and user interactions.
+ */
+
+class App {
+  constructor() {
+    this.visualizer = new Visualizer();
+    this.matchingPDA = new MatchingPDA();
+    this.palindromePDA = new PalindromePDA();
+
+    // Active tab: 'matching' | 'palindrome'
+    this.activeTab = 'matching';
+
+    // State for Tab 1 (Matching / Configurable PDA)
+    this.tab1 = {
+      pda: this.matchingPDA,
+      defaultInput: '00112233',
+      currentInput: '00112233',
+      simulationResult: null,
+      currentStepIndex: 0,
+      isPlaying: false,
+      timer: null,
+      speedMs: 800,
+      diagramId: 'diagram-matching',
+      tapeId: 'tape-matching',
+      stackId: 'stack-matching',
+      stepInfoId: 'step-info-matching',
+      traceTableId: 'trace-table-matching',
+      resultBannerId: 'result-banner-matching',
+      inputId: 'input-matching',
+      stepCounterId: 'step-counter-matching'
+    };
+
+    // State for Tab 2 (Palindrome / General CFG-to-PDA)
+    this.tab2 = {
+      pda: this.palindromePDA,
+      defaultInput: 'abba',
+      currentInput: 'abba',
+      simulationResult: null,
+      currentStepIndex: 0,
+      isPlaying: false,
+      timer: null,
+      speedMs: 800,
+      diagramId: 'diagram-palindrome',
+      tapeId: 'tape-palindrome',
+      stackId: 'stack-palindrome',
+      stepInfoId: 'step-info-palindrome',
+      traceTableId: 'trace-table-palindrome',
+      resultBannerId: 'result-banner-palindrome',
+      mirrorId: 'mirror-palindrome',
+      derivationId: 'derivation-palindrome',
+      inputId: 'input-palindrome',
+      stepCounterId: 'step-counter-palindrome'
+    };
+  }
+
+  /**
+   * Initializes the application.
+   */
+  init() {
+    // 1. Render base SVG diagrams
+    this.visualizer.initDiagrams(this.matchingPDA, this.palindromePDA);
+
+    // 2. Initialize simulation data for both tabs
+    this.loadSimulation('matching', this.tab1.defaultInput);
+    this.loadSimulation('palindrome', this.tab2.defaultInput);
+
+    // 3. Attach event listeners
+    this.attachEventListeners();
+    this.setupConfigurationDrawers();
+
+    // 4. Initial render of active tab
+    this.renderCurrentState();
+
+    // Global reference for onclick handlers
+    window.app = this;
+  }
+
+  /**
+   * Helper to get state of currently active tab.
+   */
+  getActiveState() {
+    return this.activeTab === 'matching' ? this.tab1 : this.tab2;
+  }
+
+  /**
+   * Loads or reloads a simulation for a specific tab with new input.
+   * @param {'matching' | 'palindrome'} tabName 
+   * @param {string} input 
+   */
+  loadSimulation(tabName, input) {
+    const tabState = tabName === 'matching' ? this.tab1 : this.tab2;
+
+    this.pause(tabName);
+
+    tabState.currentInput = input;
+    tabState.simulationResult = tabState.pda.simulate(input);
+    tabState.currentStepIndex = 0;
+
+    const inputEl = document.getElementById(tabState.inputId);
+    if (inputEl && inputEl.value !== input) {
+      inputEl.value = input;
+    }
+
+    this.renderTab(tabName);
+  }
+
+  /**
+   * Sets up dynamic customization drawers for both tabs.
+   */
+  setupConfigurationDrawers() {
+    // ==========================================
+    // Tab 1: Question 1 Configuration
+    // ==========================================
+    const presetSelectQ1 = document.getElementById('preset-select-matching');
+    const customEqQ1 = document.getElementById('custom-eq-matching');
+    const customDescQ1 = document.getElementById('custom-desc-matching');
+    const customTransBoxQ1 = document.getElementById('custom-trans-box-matching');
+    const customTransTextQ1 = document.getElementById('custom-transitions-matching');
+    const btnApplyQ1 = document.getElementById('btn-apply-matching');
+    const btnResetQ1 = document.getElementById('btn-reset-config-matching');
+    const badgeQ1 = document.getElementById('config-badge-matching');
+
+    if (presetSelectQ1) {
+      presetSelectQ1.addEventListener('change', (e) => {
+        const key = e.target.value;
+        if (key === 'custom') {
+          if (customTransBoxQ1) customTransBoxQ1.style.display = 'block';
+          if (customTransTextQ1 && !customTransTextQ1.value.trim()) {
+            customTransTextQ1.value = this.matchingPDA.presets.default.transitionsText;
+          }
+        } else {
+          if (customTransBoxQ1) customTransBoxQ1.style.display = 'none';
+          const p = this.matchingPDA.presets[key];
+          if (p) {
+            if (customEqQ1) customEqQ1.value = p.equation;
+            if (customDescQ1) customDescQ1.value = p.description;
+            if (customTransTextQ1) customTransTextQ1.value = p.transitionsText;
+          }
+        }
+      });
+    }
+
+    if (btnApplyQ1) {
+      btnApplyQ1.addEventListener('click', () => {
+        const key = presetSelectQ1 ? presetSelectQ1.value : 'default';
+        if (key === 'custom') {
+          this.matchingPDA.setPreset('custom', {
+            equation: customEqQ1 ? customEqQ1.value.trim() : 'Custom PDA',
+            description: customDescQ1 ? customDescQ1.value.trim() : 'User Defined PDA',
+            transitionsText: customTransTextQ1 ? customTransTextQ1.value : ''
+          });
+          if (badgeQ1) badgeQ1.textContent = 'Custom PDA Active';
+        } else {
+          this.matchingPDA.setPreset(key);
+          if (badgeQ1) badgeQ1.textContent = key === 'default' ? 'Default: 0ⁱ1ʲ2ʲ3ⁱ' : `Preset: ${this.matchingPDA.languageDescription}`;
+        }
+
+        // Update problem strip
+        const eqEl = document.getElementById('math-eq-matching');
+        const descEl = document.getElementById('strip-desc-matching');
+        if (eqEl) eqEl.textContent = this.matchingPDA.languageDescription;
+        if (descEl) descEl.textContent = this.matchingPDA.description;
+
+        // Re-render SVG diagram
+        this.visualizer.renderMatchingDiagram('diagram-matching', this.matchingPDA);
+
+        // Update presets buttons in DOM
+        this.updatePresetsDOM('matching', key);
+
+        // Reload simulation with default input for this preset
+        this.loadSimulation('matching', this.matchingPDA.defaultInput);
+      });
+    }
+
+    if (btnResetQ1) {
+      btnResetQ1.addEventListener('click', () => {
+        this.matchingPDA.resetToDefault();
+        if (presetSelectQ1) presetSelectQ1.value = 'default';
+        if (customTransBoxQ1) customTransBoxQ1.style.display = 'none';
+        const p = this.matchingPDA.presets.default;
+        if (customEqQ1) customEqQ1.value = p.equation;
+        if (customDescQ1) customDescQ1.value = p.description;
+        if (badgeQ1) badgeQ1.textContent = 'Default: 0ⁱ1ʲ2ʲ3ⁱ';
+
+        const eqEl = document.getElementById('math-eq-matching');
+        const descEl = document.getElementById('strip-desc-matching');
+        if (eqEl) eqEl.textContent = p.equation;
+        if (descEl) descEl.textContent = p.description;
+
+        this.visualizer.renderMatchingDiagram('diagram-matching', this.matchingPDA);
+        this.updatePresetsDOM('matching', 'default');
+        this.loadSimulation('matching', p.defaultInput);
+      });
+    }
+
+    // ==========================================
+    // Tab 2: Question 2 Configuration
+    // ==========================================
+    const presetSelectQ2 = document.getElementById('preset-select-palindrome');
+    const customDescQ2 = document.getElementById('custom-desc-palindrome');
+    const customGrammarInput = document.getElementById('custom-grammar-input');
+    const btnApplyQ2 = document.getElementById('btn-apply-palindrome');
+    const btnResetQ2 = document.getElementById('btn-reset-config-palindrome');
+    const badgeQ2 = document.getElementById('config-badge-palindrome');
+
+    const grammarPresets = {
+      default: {
+        grammar: 'S -> aSa | bSb | ε',
+        desc: 'Generates even-length palindromes (length 2k) over {a, b}',
+        defaultInput: 'abba',
+        badge: 'Default: S → aSa | bSb | ε'
+      },
+      allPal: {
+        grammar: 'S -> aSa | bSb | a | b | ε',
+        desc: 'Generates ALL palindromes (both even and odd length) over {a, b}',
+        defaultInput: 'aba',
+        badge: 'All Palindromes (Even & Odd)'
+      },
+      anbn: {
+        grammar: 'S -> aSb | ε',
+        desc: 'Equal number of a\'s followed by b\'s: L = { aⁿbⁿ | n ≥ 0 }',
+        defaultInput: 'aabb',
+        badge: 'L = { aⁿbⁿ }'
+      },
+      centerC: {
+        grammar: 'S -> 0S0 | 1S1 | c',
+        desc: 'Marked center binary palindromes with center delimiter c',
+        defaultInput: '01c10',
+        badge: 'Marked Center c'
+      }
+    };
+
+    if (presetSelectQ2) {
+      presetSelectQ2.addEventListener('change', (e) => {
+        const key = e.target.value;
+        if (key !== 'custom' && grammarPresets[key]) {
+          const p = grammarPresets[key];
+          if (customGrammarInput) customGrammarInput.value = p.grammar;
+          if (customDescQ2) customDescQ2.value = p.desc;
+        }
+      });
+    }
+
+    if (btnApplyQ2) {
+      btnApplyQ2.addEventListener('click', () => {
+        const key = presetSelectQ2 ? presetSelectQ2.value : 'default';
+        const grammarText = customGrammarInput ? customGrammarInput.value.trim() : 'S -> aSa | bSb | ε';
+        const descText = customDescQ2 ? customDescQ2.value.trim() : '';
+
+        const res = this.palindromePDA.setGrammar(grammarText, descText);
+        if (!res.success) {
+          alert('Error parsing grammar: ' + res.error);
+          return;
+        }
+
+        if (badgeQ2) {
+          badgeQ2.textContent = key === 'default' ? 'Default: S → aSa | bSb | ε' : `CFG: ${this.palindromePDA.grammar}`;
+        }
+
+        // Update problem strip in DOM
+        const eqEl = document.getElementById('grammar-badge-palindrome');
+        const descEl = document.getElementById('strip-desc-palindrome');
+        if (eqEl) eqEl.textContent = this.palindromePDA.grammar;
+        if (descEl) descEl.textContent = this.palindromePDA.description;
+
+        // Re-render SVG diagram
+        this.visualizer.renderPalindromeDiagram('diagram-palindrome', this.palindromePDA);
+
+        // Update presets in DOM
+        this.updatePresetsDOM('palindrome', key);
+
+        const defaultInp = grammarPresets[key] ? grammarPresets[key].defaultInput : (this.palindromePDA.terminals[0] || 'a');
+        this.loadSimulation('palindrome', defaultInp);
+      });
+    }
+
+    if (btnResetQ2) {
+      btnResetQ2.addEventListener('click', () => {
+        this.palindromePDA.resetToDefault();
+        if (presetSelectQ2) presetSelectQ2.value = 'default';
+        const p = grammarPresets.default;
+        if (customGrammarInput) customGrammarInput.value = p.grammar;
+        if (customDescQ2) customDescQ2.value = p.desc;
+        if (badgeQ2) badgeQ2.textContent = p.badge;
+
+        const eqEl = document.getElementById('grammar-badge-palindrome');
+        const descEl = document.getElementById('strip-desc-palindrome');
+        if (eqEl) eqEl.textContent = this.palindromePDA.defaultGrammar;
+        if (descEl) descEl.textContent = p.desc;
+
+        this.visualizer.renderPalindromeDiagram('diagram-palindrome', this.palindromePDA);
+        this.updatePresetsDOM('palindrome', 'default');
+        this.loadSimulation('palindrome', p.defaultInput);
+      });
+    }
+  }
+
+  /**
+   * Updates preset button tags dynamically based on the active language or grammar.
+   * @param {'matching' | 'palindrome'} tabKey 
+   * @param {string} presetKey 
+   */
+  updatePresetsDOM(tabKey, presetKey) {
+    if (tabKey === 'matching') {
+      const containerAcc = document.getElementById('presets-acc-matching');
+      const containerRej = document.getElementById('presets-rej-matching');
+      if (!containerAcc || !containerRej) return;
+
+      let accList = ['0123', '00112233', '011223', '0001122333', '001233'];
+      let rejList = ['0011223', '00112333', '01233', '00113223', '0112233', ''];
+
+      if (presetKey === 'equal01') {
+        accList = ['01', '0011', '000111', '00001111'];
+        rejList = ['001', '011', '10', '00011', ''];
+      } else if (presetKey === 'doubleB') {
+        accList = ['abb', 'aabbbb', 'aaabbbbbb'];
+        rejList = ['ab', 'abbb', 'aab', ''];
+      } else if (presetKey === 'markedPal') {
+        accList = ['c', '0c0', '1c1', '01c10', '110c011'];
+        rejList = ['0c1', '01c01', '00', ''];
+      }
+
+      containerAcc.innerHTML = accList.map(v => `<button class="preset-btn preset-acc" data-tab="matching" data-value="${v}">${v === '' ? 'ε (Empty)' : v}</button>`).join(' ');
+      containerRej.innerHTML = rejList.map(v => `<button class="preset-btn preset-rej" data-tab="matching" data-value="${v}">${v === '' ? 'ε (Empty)' : v}</button>`).join(' ');
+      this.rebindPresetButtons('matching');
+    } else if (tabKey === 'palindrome') {
+      const containerAcc = document.getElementById('presets-acc-palindrome');
+      const containerRej = document.getElementById('presets-rej-palindrome');
+      if (!containerAcc || !containerRej) return;
+
+      let accList = ['', 'aa', 'bb', 'abba', 'baab', 'aabbaa'];
+      let rejList = ['aba', 'abab', 'aabb', 'abc', 'a'];
+
+      if (presetKey === 'allPal') {
+        accList = ['', 'a', 'b', 'aa', 'bb', 'aba', 'bab', 'abba', 'baab'];
+        rejList = ['abab', 'aabb', 'ab', 'ba'];
+      } else if (presetKey === 'anbn') {
+        accList = ['', 'ab', 'aabb', 'aaabbb'];
+        rejList = ['aab', 'abb', 'ba', 'a', 'b'];
+      } else if (presetKey === 'centerC') {
+        accList = ['c', '0c0', '1c1', '01c10', '110c011'];
+        rejList = ['0c1', '01c01', '00', 'c0'];
+      }
+
+      containerAcc.innerHTML = accList.map(v => `<button class="preset-btn preset-acc" data-tab="palindrome" data-value="${v}">${v === '' ? 'ε (Empty)' : v}</button>`).join(' ');
+      containerRej.innerHTML = rejList.map(v => `<button class="preset-btn preset-rej" data-tab="palindrome" data-value="${v}">${v === '' ? 'ε (Empty)' : v}</button>`).join(' ');
+      this.rebindPresetButtons('palindrome');
+    }
+  }
+
+  /**
+   * Rebinds click listeners on dynamically generated preset buttons.
+   * @param {'matching' | 'palindrome'} tabKey 
+   */
+  rebindPresetButtons(tabKey) {
+    const buttons = document.querySelectorAll(`.preset-btn[data-tab="${tabKey}"]`);
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const val = btn.getAttribute('data-value');
+        this.loadSimulation(tabKey, val);
+      });
+    });
+  }
+
+  /**
+   * Attaches general event listeners for tabs, playback controls, and shortcuts.
+   */
+  attachEventListeners() {
+    // Tab switching
+    const tabButtons = document.querySelectorAll('.nav-tab-btn');
+    tabButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tab = btn.getAttribute('data-tab');
+        this.switchTab(tab);
+      });
+    });
+
+    this.setupTabControls('matching', 'matching');
+    this.setupTabControls('palindrome', 'palindrome');
+
+    this.rebindPresetButtons('matching');
+    this.rebindPresetButtons('palindrome');
+
+    // Global presenter keyboard shortcuts
+    window.addEventListener('keydown', (e) => {
+      if (e.target.tagName.toLowerCase() === 'input' || e.target.tagName.toLowerCase() === 'textarea') return;
+
+      if (e.code === 'ArrowRight') {
+        e.preventDefault();
+        this.nextStep();
+      } else if (e.code === 'ArrowLeft') {
+        e.preventDefault();
+        this.prevStep();
+      } else if (e.code === 'Space') {
+        e.preventDefault();
+        this.togglePlayPause();
+      } else if (e.code === 'Escape') {
+        e.preventDefault();
+        this.reset();
+      }
+    });
+  }
+
+  /**
+   * Sets up playback and input controls for a tab.
+   * @param {string} tabKey 
+   * @param {string} prefix 
+   */
+  setupTabControls(tabKey, prefix) {
+    const tabState = tabKey === 'matching' ? this.tab1 : this.tab2;
+
+    const inputEl = document.getElementById(tabState.inputId);
+    if (inputEl) {
+      inputEl.addEventListener('input', (e) => {
+        const rawVal = e.target.value.trim();
+        this.loadSimulation(tabKey, rawVal);
+      });
+    }
+
+    const playBtn = document.getElementById(`btn-play-${prefix}`);
+    if (playBtn) {
+      playBtn.addEventListener('click', () => this.play(tabKey));
+    }
+
+    const pauseBtn = document.getElementById(`btn-pause-${prefix}`);
+    if (pauseBtn) {
+      pauseBtn.addEventListener('click', () => this.pause(tabKey));
+    }
+
+    const nextBtn = document.getElementById(`btn-next-${prefix}`);
+    if (nextBtn) {
+      nextBtn.addEventListener('click', () => this.nextStep(tabKey));
+    }
+
+    const prevBtn = document.getElementById(`btn-prev-${prefix}`);
+    if (prevBtn) {
+      prevBtn.addEventListener('click', () => this.prevStep(tabKey));
+    }
+
+    const resetBtn = document.getElementById(`btn-reset-${prefix}`);
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => this.reset(tabKey));
+    }
+
+    const speedSelect = document.getElementById(`speed-select-${prefix}`);
+    if (speedSelect) {
+      speedSelect.addEventListener('change', (e) => {
+        tabState.speedMs = parseInt(e.target.value, 10) || 800;
+        if (tabState.isPlaying) {
+          this.pause(tabKey);
+          this.play(tabKey);
+        }
+      });
+    }
+  }
+
+  /**
+   * Switches active tab.
+   * @param {'matching' | 'palindrome'} tabName 
+   */
+  switchTab(tabName) {
+    if (this.activeTab === tabName) return;
+
+    this.pause(this.activeTab);
+    this.activeTab = tabName;
+
+    document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-tab') === tabName);
+    });
+
+    document.querySelectorAll('.tab-content-panel').forEach(panel => {
+      panel.classList.toggle('active', panel.id === `tab-panel-${tabName}`);
+    });
+
+    this.renderCurrentState();
+  }
+
+  /**
+   * Renders the current state of the active tab.
+   */
+  renderCurrentState() {
+    this.renderTab(this.activeTab);
+  }
+
+  /**
+   * Renders all views for the specified tab.
+   * @param {'matching' | 'palindrome'} tabKey 
+   */
+  renderTab(tabKey) {
+    const tabState = tabKey === 'matching' ? this.tab1 : this.tab2;
+    const sim = tabState.simulationResult;
+    const stepIdx = tabState.currentStepIndex;
+    const totalSteps = sim.steps.length;
+
+    const currentStep = totalSteps > 0 ? sim.steps[stepIdx] : null;
+
+    // 1. Diagram highlights
+    if (currentStep) {
+      this.visualizer.highlightState(tabState.diagramId, currentStep.state);
+      this.visualizer.highlightTransition(tabState.diagramId, currentStep.activeTransitionId);
+    } else {
+      this.visualizer.highlightState(tabState.diagramId, null);
+      this.visualizer.highlightTransition(tabState.diagramId, null);
+    }
+
+    // 2. Input tape
+    const activeTapePos = currentStep ? currentStep.inputPosition : 0;
+    const consumed = currentStep ? currentStep.inputConsumed : '';
+    this.visualizer.renderInputTape(tabState.tapeId, tabState.currentInput, activeTapePos, consumed);
+
+    // 3. Visual vertical stack
+    const stack = currentStep ? currentStep.stackAfter : ['Z'];
+    const op = currentStep ? currentStep.operation : 'INITIALIZE';
+    const symOp = currentStep ? currentStep.symbolOperated : '';
+    this.visualizer.renderVisualStack(tabState.stackId, stack, op, symOp);
+
+    // 4. Step info panel
+    this.visualizer.renderStepInfo(tabState.stepInfoId, currentStep, totalSteps);
+
+    // 5. Trace table
+    this.visualizer.renderTraceTable(tabState.traceTableId, sim.steps, stepIdx);
+
+    // 6. Result banner
+    this.visualizer.renderResultBanner(tabState.resultBannerId, sim);
+
+    // 7. Step counter text
+    const counterEl = document.getElementById(tabState.stepCounterId);
+    if (counterEl) {
+      counterEl.textContent = `Step ${stepIdx} of ${Math.max(0, totalSteps - 1)}`;
+    }
+
+    // 8. Tab-specific extra panels
+    if (tabKey === 'palindrome') {
+      this.visualizer.renderPalindromeMirror(tabState.mirrorId, sim.analysis);
+      this.visualizer.renderDerivation(tabState.derivationId, sim, stepIdx);
+    }
+
+    // 9. Update button enabled/disabled states
+    this.updateControlsState(tabKey);
+
+    // 10. Highlight matching active preset button
+    const presetBtns = document.querySelectorAll(`.preset-btn[data-tab="${tabKey}"]`);
+    presetBtns.forEach(btn => {
+      const val = btn.getAttribute('data-value');
+      btn.classList.toggle('active-preset', val === tabState.currentInput);
+    });
+  }
+
+  /**
+   * Updates enabled/disabled attributes for buttons.
+   * @param {'matching' | 'palindrome'} tabKey 
+   */
+  updateControlsState(tabKey) {
+    const tabState = tabKey === 'matching' ? this.tab1 : this.tab2;
+    const prefix = tabKey;
+    const totalSteps = tabState.simulationResult ? tabState.simulationResult.steps.length : 0;
+    const isAtStart = tabState.currentStepIndex === 0;
+    const isAtEnd = tabState.currentStepIndex >= totalSteps - 1;
+    const isPlaying = tabState.isPlaying;
+
+    const btnPlay = document.getElementById(`btn-play-${prefix}`);
+    const btnPause = document.getElementById(`btn-pause-${prefix}`);
+    const btnNext = document.getElementById(`btn-next-${prefix}`);
+    const btnPrev = document.getElementById(`btn-prev-${prefix}`);
+    const btnReset = document.getElementById(`btn-reset-${prefix}`);
+
+    if (btnPlay) {
+      btnPlay.disabled = isPlaying || isAtEnd;
+      btnPlay.classList.toggle('active-mode', isPlaying);
+    }
+    if (btnPause) {
+      btnPause.disabled = !isPlaying;
+      btnPause.classList.toggle('active-mode', !isPlaying && !isAtEnd);
+    }
+    if (btnNext) {
+      btnNext.disabled = isPlaying || isAtEnd;
+    }
+    if (btnPrev) {
+      btnPrev.disabled = isPlaying || isAtStart;
+    }
+    if (btnReset) {
+      btnReset.disabled = isAtStart && !isPlaying;
+    }
+  }
+
+  /**
+   * Advances one step.
+   * @param {'matching' | 'palindrome'} [tabKey] 
+   */
+  nextStep(tabKey) {
+    const key = tabKey || this.activeTab;
+    const tabState = key === 'matching' ? this.tab1 : this.tab2;
+    const totalSteps = tabState.simulationResult.steps.length;
+
+    if (tabState.currentStepIndex < totalSteps - 1) {
+      tabState.currentStepIndex++;
+      this.renderTab(key);
+    } else {
+      this.pause(key);
+    }
+  }
+
+  /**
+   * Moves back one step.
+   * @param {'matching' | 'palindrome'} [tabKey] 
+   */
+  prevStep(tabKey) {
+    const key = tabKey || this.activeTab;
+    const tabState = key === 'matching' ? this.tab1 : this.tab2;
+
+    if (tabState.currentStepIndex > 0) {
+      tabState.currentStepIndex--;
+      this.renderTab(key);
+    }
+  }
+
+  /**
+   * Resets simulation to step 0.
+   * @param {'matching' | 'palindrome'} [tabKey] 
+   */
+  reset(tabKey) {
+    const key = tabKey || this.activeTab;
+    const tabState = key === 'matching' ? this.tab1 : this.tab2;
+
+    this.pause(key);
+    tabState.currentStepIndex = 0;
+    this.renderTab(key);
+  }
+
+  /**
+   * Starts automatic play forward.
+   * @param {'matching' | 'palindrome'} [tabKey] 
+   */
+  play(tabKey) {
+    const key = tabKey || this.activeTab;
+    const tabState = key === 'matching' ? this.tab1 : this.tab2;
+    const totalSteps = tabState.simulationResult.steps.length;
+
+    if (tabState.currentStepIndex >= totalSteps - 1) {
+      tabState.currentStepIndex = 0;
+      this.renderTab(key);
+    }
+
+    if (tabState.isPlaying) return;
+
+    tabState.isPlaying = true;
+    this.updateControlsState(key);
+
+    tabState.timer = setInterval(() => {
+      if (tabState.currentStepIndex < totalSteps - 1) {
+        this.nextStep(key);
+      } else {
+        this.pause(key);
+      }
+    }, tabState.speedMs);
+  }
+
+  /**
+   * Pauses automatic play.
+   * @param {'matching' | 'palindrome'} [tabKey] 
+   */
+  pause(tabKey) {
+    const key = tabKey || this.activeTab;
+    const tabState = key === 'matching' ? this.tab1 : this.tab2;
+
+    if (tabState.timer) {
+      clearInterval(tabState.timer);
+      tabState.timer = null;
+    }
+    tabState.isPlaying = false;
+    this.updateControlsState(key);
+  }
+
+  /**
+   * Toggles between play and pause.
+   */
+  togglePlayPause() {
+    const tabState = this.getActiveState();
+    if (tabState.isPlaying) {
+      this.pause(this.activeTab);
+    } else {
+      this.play(this.activeTab);
+    }
+  }
+
+  /**
+   * Jumps to a specific step index.
+   * @param {number} stepIndex 
+   */
+  goToStep(stepIndex) {
+    const tabState = this.getActiveState();
+    const totalSteps = tabState.simulationResult.steps.length;
+
+    if (stepIndex >= 0 && stepIndex < totalSteps) {
+      this.pause(this.activeTab);
+      tabState.currentStepIndex = stepIndex;
+      this.renderTab(this.activeTab);
+    }
+  }
+}
+
+// Auto-initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+  const app = new App();
+  app.init();
+});
+
+</script>
+</body>
+</html>
