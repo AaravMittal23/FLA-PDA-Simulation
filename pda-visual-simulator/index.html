@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDA Visual Simulator — Interactive Automata Theory</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- Sleek Unified Header & Tabs -->
+  <header class="app-header">
+    <div class="container header-flex">
+      <div class="header-brand">
+        <h1 class="app-title">PDA Visual Simulator</h1>
+        <p class="app-subtitle">Interactive Automata Theory &amp; CFG Simulator</p>
+      </div>
+      <nav class="tab-nav-wrapper">
+        <button class="nav-tab-btn active" data-tab="matching" id="tab-btn-matching">
+          <span>Question 1: Matching PDA</span>
+          <span class="badge-pill">0ⁱ1ʲ2ʲ3ⁱ</span>
+        </button>
+        <button class="nav-tab-btn" data-tab="palindrome" id="tab-btn-palindrome">
+          <span>Question 2: Palindrome PDA</span>
+          <span class="badge-pill">S → aSa | bSb | ε</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="container">
+
+    <!-- ===================================================================
+         TAB 1: QUESTION 1 — MATCHING PDA
+         =================================================================== -->
+    <section id="tab-panel-matching" class="tab-content-panel active">
+      
+      <!-- Compact Problem Strip -->
+      <div class="problem-summary-strip">
+        <div class="strip-left">
+          <span class="math-definition">L = { 0ⁱ1ʲ2ʲ3ⁱ | i, j ≥ 1 }</span>
+          <span class="strip-rule">Equal 0s &amp; 3s, equal 1s &amp; 2s &bull; Strict order: 0-1-2-3 &bull; Stack Alphabet: {Z, X, Y}</span>
+        </div>
+      </div>
+
+      <!-- Controls & Input Bar -->
+      <div class="card control-card">
+        <div class="input-controls-row">
+          <div class="input-group">
+            <label for="input-matching" class="input-label">Input String (Σ = {0, 1, 2, 3}):</label>
+            <div class="input-field-wrapper">
+              <input type="text" id="input-matching" class="text-input" value="00112233" maxlength="30" placeholder="e.g. 00112233" spellcheck="false" autocomplete="off">
+              <span class="char-limit-badge">max 30</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Clean Presets -->
+        <div class="presets-section">
+          <div class="preset-group-row">
+            <span class="preset-title accepted">Accepted:</span>
+            <button class="preset-btn preset-acc" data-tab="matching" data-value="0123">0123</button>
+            <button class="preset-btn preset-acc" data-tab="matching" data-value="00112233">00112233</button>
+            <button class="preset-btn preset-acc" data-tab="matching" data-value="011223">011223</button>
+            <button class="preset-btn preset-acc" data-tab="matching" data-value="0001122333">0001122333</button>
+            <button class="preset-btn preset-acc" data-tab="matching" data-value="001233">001233</button>
+          </div>
+          <div class="preset-group-row">
+            <span class="preset-title rejected">Rejected:</span>
+            <button class="preset-btn preset-rej" data-tab="matching" data-value="0011223">0011223</button>
+            <button class="preset-btn preset-rej" data-tab="matching" data-value="00112333">00112333</button>
+            <button class="preset-btn preset-rej" data-tab="matching" data-value="01233">01233</button>
+            <button class="preset-btn preset-rej" data-tab="matching" data-value="00113223">00113223</button>
+            <button class="preset-btn preset-rej" data-tab="matching" data-value="0112233">0112233</button>
+            <button class="preset-btn preset-rej" data-tab="matching" data-value="">ε (Empty)</button>
+          </div>
+        </div>
+
+        <!-- Playback Controls -->
+        <div class="playback-controls-row">
+          <div class="button-group">
+            <button id="btn-reset-matching" class="btn" title="Reset (Esc)">⏮ Reset</button>
+            <button id="btn-prev-matching" class="btn" title="Previous (Left Arrow)">◀ Prev</button>
+            <button id="btn-play-matching" class="btn btn-primary" title="Play (Spacebar)">▶ Play</button>
+            <button id="btn-pause-matching" class="btn" title="Pause (Spacebar)" disabled>⏸ Pause</button>
+            <button id="btn-next-matching" class="btn" title="Next (Right Arrow)">Next ▶</button>
+          </div>
+
+          <div class="button-group">
+            <div class="speed-control">
+              <span>Speed:</span>
+              <select id="speed-select-matching" class="speed-select">
+                <option value="1500">Slow (1.5s)</option>
+                <option value="800" selected>Normal (0.8s)</option>
+                <option value="350">Fast (0.35s)</option>
+              </select>
+            </div>
+            <div id="step-counter-matching" class="step-counter-tag">Step 0 of 0</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Simulation View Grid -->
+      <div class="sim-grid">
+        
+        <!-- Left: Diagram, Tape, Step Info, Result -->
+        <div class="sim-col-left">
+          
+          <div class="card diagram-card">
+            <div class="card-title-compact">PDA State Diagram</div>
+            <div id="diagram-matching"></div>
+          </div>
+
+          <div class="card tape-card">
+            <div class="card-title-compact">Input Tape</div>
+            <div id="tape-matching"></div>
+          </div>
+
+          <div class="card" style="padding:14px 18px;">
+            <div id="step-info-matching"></div>
+          </div>
+
+          <div id="result-banner-matching"></div>
+
+        </div>
+
+        <!-- Right: Stack & Trace Table -->
+        <div class="sim-col-right">
+
+          <div class="card stack-card">
+            <div class="card-title-compact">Visual Stack (LIFO)</div>
+            <div id="stack-matching"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-title-compact">Execution Trace Table</div>
+            <div id="trace-table-matching"></div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Collapsible Educational Guide (Uncluttered) -->
+      <details class="edu-details">
+        <summary class="edu-summary">📖 Automata Theory &amp; PDA Rules Reference (Click to expand)</summary>
+        <div class="edu-grid">
+          <div class="edu-card">
+            <h4>1. Language Definition</h4>
+            <p><code>L = {0ⁱ1ʲ2ʲ3ⁱ | i, j ≥ 1}</code> requires nested balance: outer 0s match 3s, and inner 1s match 2s. At least one symbol from each group is required.</p>
+          </div>
+          <div class="edu-card">
+            <h4>2. Why Stack is Needed</h4>
+            <p>A finite automaton cannot count unbounded counts of <code>i</code> and <code>j</code>. An unbounded LIFO stack stores markers for 0s and 1s and pops them when reading 2s and 3s.</p>
+          </div>
+          <div class="edu-card">
+            <h4>3. Role of Symbols X and Y</h4>
+            <p>0s push <code>X</code> in <code>q0</code>. 1s push <code>Y</code> in <code>q1</code>. 2s pop <code>Y</code> in <code>q2</code>. 3s pop <code>X</code> in <code>q3</code>.</p>
+          </div>
+          <div class="edu-card">
+            <h4>4. Acceptance Rule</h4>
+            <p>Accepted when all symbols are consumed, all Ys and Xs popped, leaving marker <code>Z</code> to transition into <code>qf</code> via <code>(ε, Z → Z)</code>.</p>
+          </div>
+        </div>
+      </details>
+
+    </section>
+
+
+    <!-- ===================================================================
+         TAB 2: QUESTION 2 — PALINDROME PDA
+         =================================================================== -->
+    <section id="tab-panel-palindrome" class="tab-content-panel">
+
+      <!-- Compact Problem Strip -->
+      <div class="problem-summary-strip">
+        <div class="strip-left">
+          <span class="math-definition grammar-badge">S → aSa | bSb | ε</span>
+          <span class="strip-rule">Generates even-length palindromes (length 2k) over {a, b} &bull; Stack Alphabet: {Z, S, a, b}</span>
+        </div>
+      </div>
+
+      <!-- Controls & Input Bar -->
+      <div class="card control-card">
+        <div class="input-controls-row">
+          <div class="input-group">
+            <label for="input-palindrome" class="input-label">Input String (Σ = {a, b}):</label>
+            <div class="input-field-wrapper">
+              <input type="text" id="input-palindrome" class="text-input" value="abba" maxlength="30" placeholder="e.g. abba" spellcheck="false" autocomplete="off">
+              <span class="char-limit-badge">max 30</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Clean Presets -->
+        <div class="presets-section">
+          <div class="preset-group-row">
+            <span class="preset-title accepted">Accepted:</span>
+            <button class="preset-btn preset-acc" data-tab="palindrome" data-value="">ε (Empty)</button>
+            <button class="preset-btn preset-acc" data-tab="palindrome" data-value="aa">aa</button>
+            <button class="preset-btn preset-acc" data-tab="palindrome" data-value="bb">bb</button>
+            <button class="preset-btn preset-acc" data-tab="palindrome" data-value="abba">abba</button>
+            <button class="preset-btn preset-acc" data-tab="palindrome" data-value="baab">baab</button>
+            <button class="preset-btn preset-acc" data-tab="palindrome" data-value="aabbaa">aabbaa</button>
+          </div>
+          <div class="preset-group-row">
+            <span class="preset-title rejected">Rejected:</span>
+            <button class="preset-btn preset-rej" data-tab="palindrome" data-value="aba">aba (odd-length)</button>
+            <button class="preset-btn preset-rej" data-tab="palindrome" data-value="abab">abab</button>
+            <button class="preset-btn preset-rej" data-tab="palindrome" data-value="aabb">aabb</button>
+            <button class="preset-btn preset-rej" data-tab="palindrome" data-value="abc">abc</button>
+            <button class="preset-btn preset-rej" data-tab="palindrome" data-value="a">a</button>
+          </div>
+        </div>
+
+        <!-- Playback Controls -->
+        <div class="playback-controls-row">
+          <div class="button-group">
+            <button id="btn-reset-palindrome" class="btn" title="Reset (Esc)">⏮ Reset</button>
+            <button id="btn-prev-palindrome" class="btn" title="Previous (Left Arrow)">◀ Prev</button>
+            <button id="btn-play-palindrome" class="btn btn-primary" title="Play (Spacebar)">▶ Play</button>
+            <button id="btn-pause-palindrome" class="btn" title="Pause (Spacebar)" disabled>⏸ Pause</button>
+            <button id="btn-next-palindrome" class="btn" title="Next (Right Arrow)">Next ▶</button>
+          </div>
+
+          <div class="button-group">
+            <div class="speed-control">
+              <span>Speed:</span>
+              <select id="speed-select-palindrome" class="speed-select">
+                <option value="1500">Slow (1.5s)</option>
+                <option value="800" selected>Normal (0.8s)</option>
+                <option value="350">Fast (0.35s)</option>
+              </select>
+            </div>
+            <div id="step-counter-palindrome" class="step-counter-tag">Step 0 of 0</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Palindrome Symmetry Mirror & Derivation (Compact Grid) -->
+      <div class="pal-compact-row">
+        <div class="card" style="flex:1; margin-bottom:14px; padding:12px 16px;">
+          <div id="mirror-palindrome"></div>
+        </div>
+        <div class="card" style="flex:1; margin-bottom:14px; padding:12px 16px;">
+          <div id="derivation-palindrome"></div>
+        </div>
+      </div>
+
+      <!-- Simulation View Grid -->
+      <div class="sim-grid">
+        
+        <!-- Left: Diagram, Tape, Step Info, Result -->
+        <div class="sim-col-left">
+          
+          <div class="card diagram-card">
+            <div class="card-title-compact">CFG-to-PDA 3-State Diagram</div>
+            <div id="diagram-palindrome"></div>
+          </div>
+
+          <div class="card tape-card">
+            <div class="card-title-compact">Input Tape</div>
+            <div id="tape-palindrome"></div>
+          </div>
+
+          <div class="card" style="padding:14px 18px;">
+            <div id="step-info-palindrome"></div>
+          </div>
+
+          <div id="result-banner-palindrome"></div>
+
+        </div>
+
+        <!-- Right: Stack & Trace Table -->
+        <div class="sim-col-right">
+
+          <div class="card stack-card">
+            <div class="card-title-compact">Visual Stack (LIFO)</div>
+            <div id="stack-palindrome"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-title-compact">Execution Trace Table</div>
+            <div id="trace-table-palindrome"></div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Collapsible Educational Guide -->
+      <details class="edu-details">
+        <summary class="edu-summary">📖 Theory &amp; Grammar Conversion Reference (Click to expand)</summary>
+        <div class="edu-grid">
+          <div class="edu-card">
+            <h4>1. Context-Free Grammar</h4>
+            <p><code>S → aSa | bSb | ε</code> generates palindromes by adding matching character pairs at both ends. Base case is <code>ε</code>.</p>
+          </div>
+          <div class="edu-card">
+            <h4>2. Even-Length Constraint</h4>
+            <p>Every step adds exactly 2 characters. Hence length is always <code>2k</code> (even). Odd palindromes like <code>aba</code> cannot be produced.</p>
+          </div>
+          <div class="edu-card">
+            <h4>3. CFG to PDA Algorithm</h4>
+            <p>Expansion: <code>(ε, A → α)</code> pops variable and pushes RHS. Terminal matching: <code>(a, a → ε)</code> matches input against stack top.</p>
+          </div>
+          <div class="edu-card">
+            <h4>4. Non-determinism</h4>
+            <p>The PDA decides when the middle is reached to apply <code>S → ε</code>. The simulator traces the valid accepting derivation path.</p>
+          </div>
+        </div>
+      </details>
+
+    </section>
+
+  </main>
+
+  <!-- App Footer -->
+  <footer class="app-footer">
+    <div class="container">
+      <p><strong>PDA Visual Simulator</strong> &bull; Interactive Automata Theory &bull; Offline &bull; Zero Dependencies</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="js/matching-pda.js"></script>
+  <script src="js/palindrome-pda.js"></script>
+  <script src="js/visualizer.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

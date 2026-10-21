@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDA Visual Simulator — Automated Test Suite</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --navy: #0f2942;
+      --green: #16a34a;
+      --red: #dc2626;
+      --border: #e2e8f0;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 30px 20px;
+      margin: 0;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    header {
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    h1 {
+      color: var(--navy);
+      font-size: 1.8rem;
+      margin: 0 0 6px 0;
+    }
+    .subtitle {
+      color: #64748b;
+      font-size: 0.95rem;
+      margin: 0;
+    }
+    .nav-links a {
+      color: #2563eb;
+      text-decoration: none;
+      font-weight: 600;
+      margin-left: 12px;
+    }
+    .nav-links a:hover {
+      text-decoration: underline;
+    }
+    .summary-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 24px;
+      margin-bottom: 24px;
+      display: flex;
+      gap: 24px;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+    }
+    .stat-badge {
+      display: flex;
+      flex-direction: column;
+    }
+    .stat-val {
+      font-size: 2rem;
+      font-weight: 800;
+      font-family: var(--font-mono);
+      line-height: 1;
+    }
+    .stat-val.passed { color: var(--green); }
+    .stat-val.failed { color: var(--red); }
+    .stat-val.total { color: var(--navy); }
+    .stat-lbl {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+    .suite-section {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+    }
+    .suite-title {
+      color: var(--navy);
+      font-size: 1.25rem;
+      margin-top: 0;
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .test-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    .test-table th, .test-table td {
+      padding: 8px 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    .test-table th {
+      background: #f1f5f9;
+      font-weight: 700;
+      color: #334155;
+    }
+    .status-tag {
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+    }
+    .status-pass {
+      background: #dcfce7;
+      color: #15803d;
+      border: 1px solid #bbf7d0;
+    }
+    .status-fail {
+      background: #fee2e2;
+      color: #b91c1c;
+      border: 1px solid #fecaca;
+    }
+    code {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      background: #f1f5f9;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .test-detail {
+      font-size: 0.82rem;
+      color: #64748b;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div>
+        <h1>PDA Visual Simulator — Unit &amp; Regression Tests</h1>
+        <p class="subtitle">Automated verification of automata engines, trace integrity, and mathematical correctness</p>
+      </div>
+      <div class="nav-links">
+        <a href="../index.html">← Back to Simulator</a>
+      </div>
+    </header>
+
+    <!-- Results Summary -->
+    <div class="summary-card">
+      <div class="stat-badge">
+        <span class="stat-val total" id="stat-total">0</span>
+        <span class="stat-lbl">Total Tests</span>
+      </div>
+      <div class="stat-badge">
+        <span class="stat-val passed" id="stat-passed">0</span>
+        <span class="stat-lbl">Passed</span>
+      </div>
+      <div class="stat-badge">
+        <span class="stat-val failed" id="stat-failed">0</span>
+        <span class="stat-lbl">Failed</span>
+      </div>
+      <div style="margin-left: auto;">
+        <button onclick="runAllTests()" style="padding: 8px 16px; background:#0f2942; color:#fff; border:none; border-radius:6px; font-weight:700; cursor:pointer;">
+          ↻ Re-run All Tests
+        </button>
+      </div>
+    </div>
+
+    <!-- Suite 1: Question 1 Matching PDA -->
+    <div class="suite-section">
+      <h2 class="suite-title">Question 1: Matching PDA (L = { 0ⁱ1ʲ2ʲ3ⁱ | i, j ≥ 1 })</h2>
+      <table class="test-table">
+        <thead>
+          <tr>
+            <th style="width: 180px;">Test Description</th>
+            <th style="width: 140px;">Input</th>
+            <th style="width: 110px;">Expected</th>
+            <th style="width: 90px;">Status</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-q1"></tbody>
+      </table>
+    </div>
+
+    <!-- Suite 2: Question 2 Palindrome PDA -->
+    <div class="suite-section">
+      <h2 class="suite-title">Question 2: Palindrome CFG-to-PDA (S → aSa | bSb | ε)</h2>
+      <table class="test-table">
+        <thead>
+          <tr>
+            <th style="width: 180px;">Test Description</th>
+            <th style="width: 140px;">Input</th>
+            <th style="width: 110px;">Expected</th>
+            <th style="width: 90px;">Status</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-q2"></tbody>
+      </table>
+    </div>
+
+    <!-- Suite 3: Trace and Invariant Tests -->
+    <div class="suite-section">
+      <h2 class="suite-title">Trace Evolution &amp; Invariant Tests</h2>
+      <table class="test-table">
+        <thead>
+          <tr>
+            <th style="width: 220px;">Test Description</th>
+            <th style="width: 100px;">Input</th>
+            <th style="width: 140px;">Expected Property</th>
+            <th style="width: 90px;">Status</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-trace"></tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <!-- Engines -->
+  <script src="../js/matching-pda.js"></script>
+  <script src="../js/palindrome-pda.js"></script>
+
+  <!-- Test Suite Execution Script -->
+  <script>
+    let totalCount = 0;
+    let passCount = 0;
+    let failCount = 0;
+
+    function recordTest(tbodyId, desc, input, expected, passed, details) {
+      totalCount++;
+      if (passed) passCount++;
+      else failCount++;
+
+      const tbody = document.getElementById(tbodyId);
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td><strong>${desc}</strong></td>
+        <td><code>${input === '' ? 'ε (empty)' : input}</code></td>
+        <td><code>${expected}</code></td>
+        <td><span class="status-tag ${passed ? 'status-pass' : 'status-fail'}">${passed ? 'PASS' : 'FAIL'}</span></td>
+        <td class="test-detail">${details}</td>
+      `;
+      tbody.appendChild(row);
+    }
+
+    function runAllTests() {
+      totalCount = 0;
+      passCount = 0;
+      failCount = 0;
+
+      document.getElementById('tbody-q1').innerHTML = '';
+      document.getElementById('tbody-q2').innerHTML = '';
+      document.getElementById('tbody-trace').innerHTML = '';
+
+      const pda1 = new MatchingPDA();
+      const pda2 = new PalindromePDA();
+
+      // ==========================================
+      // SUITE 1: Question 1 Matching PDA
+      // ==========================================
+      const q1Tests = [
+        { desc: 'Base valid string (i=1, j=1)', input: '0123', expectAccept: true },
+        { desc: 'Default string (i=2, j=2)', input: '00112233', expectAccept: true },
+        { desc: 'Valid string (i=1, j=2)', input: '011223', expectAccept: true },
+        { desc: 'Valid string (i=3, j=2)', input: '0001122333', expectAccept: true },
+        { desc: 'Valid string (i=2, j=1)', input: '001233', expectAccept: true },
+        { desc: 'Valid large string (i=4, j=4)', input: '0000111122223333', expectAccept: true },
+        { desc: 'Missing one 3 (fewer 3s)', input: '0011223', expectAccept: false },
+        { desc: 'Unbalanced counts', input: '00112333', expectAccept: false },
+        { desc: 'Extra 3 symbol (0s ≠ 3s)', input: '01233', expectAccept: false },
+        { desc: 'Incorrect symbol order', input: '00113223', expectAccept: false },
+        { desc: 'Prompt preset 0112233 (0s ≠ 3s)', input: '0112233', expectAccept: false },
+        { desc: 'Empty string (requires i,j ≥ 1)', input: '', expectAccept: false },
+        { desc: 'Premature end (no 3s)', input: '001122', expectAccept: false },
+        { desc: 'Premature end (no 0s)', input: '112233', expectAccept: false },
+        { desc: 'Only 0s provided', input: '000', expectAccept: false },
+        { desc: 'Extra trailing symbol', input: '001122330', expectAccept: false },
+        { desc: 'Alphabet violation (contains a)', input: '0123a', expectAccept: false },
+        { desc: 'Exceeds max length limit (31 chars)', input: '0'.repeat(31), expectAccept: false }
+      ];
+
+      q1Tests.forEach(t => {
+        const res = pda1.simulate(t.input);
+        const passed = res.accepted === t.expectAccept;
+        recordTest('tbody-q1', t.desc, t.input, t.expectAccept ? 'ACCEPTED' : 'REJECTED', passed, res.reason);
+      });
+
+      // ==========================================
+      // SUITE 2: Question 2 Palindrome PDA
+      // ==========================================
+      const q2Tests = [
+        { desc: 'Base empty string ε', input: '', expectAccept: true },
+        { desc: 'Length 2: "aa"', input: 'aa', expectAccept: true },
+        { desc: 'Length 2: "bb"', input: 'bb', expectAccept: true },
+        { desc: 'Default string "abba"', input: 'abba', expectAccept: true },
+        { desc: 'Length 4: "baab"', input: 'baab', expectAccept: true },
+        { desc: 'Length 6: "aabbaa"', input: 'aabbaa', expectAccept: true },
+        { desc: 'Length 6: "abaaba"', input: 'abaaba', expectAccept: true },
+        { desc: 'Length 10 palindrome', input: 'baabbbbaab', expectAccept: true },
+        { desc: 'Single character "a" (odd length)', input: 'a', expectAccept: false },
+        { desc: 'Single character "b" (odd length)', input: 'b', expectAccept: false },
+        { desc: 'Odd-length palindrome "aba"', input: 'aba', expectAccept: false },
+        { desc: 'Odd-length palindrome "bab"', input: 'bab', expectAccept: false },
+        { desc: 'Non-palindrome "abab"', input: 'abab', expectAccept: false },
+        { desc: 'Non-palindrome "aabb"', input: 'aabb', expectAccept: false },
+        { desc: 'Alphabet violation "abc"', input: 'abc', expectAccept: false },
+        { desc: 'Alphabet violation "0110"', input: '0110', expectAccept: false },
+        { desc: 'Exceeds max length limit (31 chars)', input: 'a'.repeat(31), expectAccept: false }
+      ];
+
+      q2Tests.forEach(t => {
+        const res = pda2.simulate(t.input);
+        const passed = res.accepted === t.expectAccept;
+        recordTest('tbody-q2', t.desc, t.input, t.expectAccept ? 'ACCEPTED' : 'REJECTED', passed, res.reason);
+      });
+
+      // ==========================================
+      // SUITE 3: Trace Evolution & Invariant Tests
+      // ==========================================
+
+      // Test 3.1: Stack evolution for 00112233
+      // Expected sequence: Z -> ZX -> ZXX -> ZXXY -> ZXXYY -> ZXXY -> ZXX -> ZX -> Z -> Z
+      const res00112233 = pda1.simulate('00112233');
+      const expectedStacksQ1 = ['Z', 'ZX', 'ZXX', 'ZXXY', 'ZXXYY', 'ZXXY', 'ZXX', 'ZX', 'Z', 'Z'];
+      const actualStacksQ1 = res00112233.steps.map(s => s.stackString);
+      const stacksMatchQ1 = JSON.stringify(expectedStacksQ1) === JSON.stringify(actualStacksQ1);
+      recordTest(
+        'tbody-trace',
+        'Q1 Stack Evolution for 00112233',
+        '00112233',
+        expectedStacksQ1.join(' → '),
+        stacksMatchQ1,
+        `Produced ${actualStacksQ1.length} steps: ${actualStacksQ1.join(' → ')}`
+      );
+
+      // Test 3.2: Epsilon transition to qf for Q1
+      const lastStepQ1 = res00112233.steps[res00112233.steps.length - 1];
+      const reachesQf = lastStepQ1.state === 'q3' && lastStepQ1.nextState === 'qf' && lastStepQ1.inputConsumed === 'ε';
+      recordTest(
+        'tbody-trace',
+        'Q1 Final ε-transition to qf',
+        '00112233',
+        'q3 → qf via ε',
+        reachesQf,
+        `Final step: ${lastStepQ1.state} → ${lastStepQ1.nextState} reading '${lastStepQ1.inputConsumed}'`
+      );
+
+      // Test 3.3: abba execution sequence follows prompt's 9 items
+      const resAbba = pda2.simulate('abba');
+      const hasInitSZ = resAbba.steps[1].stackString === 'ZS' && resAbba.steps[1].operation === 'PUSH';
+      const hasExpandA = resAbba.steps[2].production === 'S → aSa';
+      const hasMatchA1 = resAbba.steps[3].inputConsumed === 'a';
+      const hasExpandB = resAbba.steps[4].production === 'S → bSb';
+      const hasMatchB1 = resAbba.steps[5].inputConsumed === 'b';
+      const hasExpandEps = resAbba.steps[6].production === 'S → ε';
+      const hasMatchB2 = resAbba.steps[7].inputConsumed === 'b';
+      const hasMatchA2 = resAbba.steps[8].inputConsumed === 'a';
+      const hasAcceptQf = resAbba.steps[9].nextState === 'qf' && resAbba.steps[9].operation === 'ACCEPT';
+
+      const abbaTraceValid = hasInitSZ && hasExpandA && hasMatchA1 && hasExpandB && hasMatchB1 && hasExpandEps && hasMatchB2 && hasMatchA2 && hasAcceptQf;
+      recordTest(
+        'tbody-trace',
+        'Q2 9-step execution for abba',
+        'abba',
+        'Strict 9-step CFG-to-PDA trace',
+        abbaTraceValid,
+        `All 9 sequential execution checkpoints verified for abba`
+      );
+
+      // Test 3.4: Grammar derivation generation for abba
+      const expectedDerivation = 'S ⇒ aSa ⇒ abSba ⇒ abba';
+      const actualDerivation = resAbba.analysis.derivation ? resAbba.analysis.derivation.join(' ⇒ ') : '';
+      recordTest(
+        'tbody-trace',
+        'Q2 Leftmost derivation for abba',
+        'abba',
+        expectedDerivation,
+        expectedDerivation === actualDerivation,
+        `Generated: ${actualDerivation}`
+      );
+
+      // Test 3.5: Odd palindrome educational flag
+      const resAba = pda2.simulate('aba');
+      const mentionsOddGrammar = resAba.reason.includes('odd-length') && resAba.reason.includes('even-length');
+      recordTest(
+        'tbody-trace',
+        'Q2 Odd palindrome pedagogical distinction',
+        'aba',
+        'Clarifies CFG only generates even palindromes',
+        mentionsOddGrammar,
+        resAba.reason
+      );
+
+      // Update summary UI
+      document.getElementById('stat-total').textContent = totalCount;
+      document.getElementById('stat-passed').textContent = passCount;
+      document.getElementById('stat-failed').textContent = failCount;
+    }
+
+    // Auto-run when opened
+    document.addEventListener('DOMContentLoaded', runAllTests);
+  </script>
+</body>
+</html>
